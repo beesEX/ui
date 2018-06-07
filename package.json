@@ -10,7 +10,7 @@
   "license": "MIT",
   "scripts": {
     "postinstall": "cp node_modules/popper.js/dist/popper.min.* public/js/lib && cp node_modules/bootstrap/dist/js/bootstrap.min.* public/js/lib && cp node_modules/jquery/dist/jquery.min.* public/js/lib && npm rebuild node-sass",
-    "start": "node app.js",
+    "start": "nodemon --watch config --watch controllers --watch models app.js",
     "test": "nyc mocha --timeout=3000 --exit",
     "lint": "eslint **/*.js"
   },
@@ -73,6 +73,7 @@
     "eslint-plugin-chai-friendly": "^0.4.1",
     "eslint-plugin-import": "^2.11.0",
     "mocha": "^5.1.1",
+    "nodemon": "^1.17.5",
     "nyc": "^11.7.2",
     "sinon": "^4.5.0",
     "sinon-mongoose": "^2.1.1",
