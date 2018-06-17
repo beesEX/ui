@@ -9,7 +9,7 @@
   "author": "Vu, Duc Tung; Ho, Viet Anh; Phan, Manh Hung; Le, Tung Huy; Ta, Hoang Lam; Tran, Duy; Tran, The Anh; Le, Ngoc Son",
   "license": "MIT",
   "scripts": {
-    "postinstall": "cp node_modules/popper.js/dist/popper.min.* public/js/lib && cp node_modules/bootstrap/dist/js/bootstrap.min.* public/js/lib && cp node_modules/jquery/dist/jquery.min.* public/js/lib && npm rebuild node-sass",
+    "postinstall": "xcopy  /Y node_modules\\popper.js\\dist\\popper.min.* public\\js\\lib && xcopy /Y node_modules\\bootstrap\\dist\\js\\bootstrap.min.* public\\js\\lib && xcopy /Y node_modules\\jquery\\dist\\jquery.min.* public\\js\\lib && npm rebuild node-sass",
     "start": "nodemon --watch config --watch controllers --watch models app.js",
     "test": "nyc mocha --timeout=3000 --exit",
     "lint": "eslint **/*.js"
