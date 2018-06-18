@@ -9,7 +9,7 @@
   "author": "Vu, Duc Tung; Ho, Viet Anh; Phan, Manh Hung; Le, Tung Huy; Ta, Hoang Lam; Tran, Duy; Tran, The Anh; Le, Ngoc Son",
   "license": "MIT",
   "scripts": {
-    "postinstall": "xcopy  /Y node_modules\\popper.js\\dist\\popper.min.* public\\js\\lib && xcopy /Y node_modules\\bootstrap\\dist\\js\\bootstrap.min.* public\\js\\lib && xcopy /Y node_modules\\jquery\\dist\\jquery.min.* public\\js\\lib && npm rebuild node-sass",
+    "postinstall": "cp node_modules/popper.js/dist/popper.min.* public/js/lib && cp node_modules/bootstrap/dist/js/bootstrap.min.* public/js/lib && cp node_modules/jquery/dist/jquery.min.* public/js/lib && npm rebuild node-sass",
     "start": "nodemon --watch config --watch controllers --watch models app.js",
     "test": "nyc mocha --timeout=3000 --exit",
     "lint": "eslint **/*.js"
@@ -38,14 +38,7 @@
     "node-sass-middleware": "^0.11.0",
     "nodemailer": "^4.6.4",
     "passport": "^0.4.0",
-    "passport-facebook": "^2.1.1",
-    "passport-github": "^1.1.0",
-    "passport-google-oauth": "^1.0.0",
-    "passport-instagram": "^1.0.0",
-    "passport-linkedin-oauth2": "^1.5.0",
     "passport-local": "^1.0.0",
-    "passport-oauth": "^1.0.0",
-    "passport-openid": "^0.4.0",
     "popper.js": "^1.14.3",
     "pug": "^2.0.3",
     "request": "^2.85.0",
