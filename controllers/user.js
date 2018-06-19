@@ -1,9 +1,10 @@
-const {promisify} = require('util');
+/* eslint-disable linebreak-style */
+const { promisify } = require('util');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
-const makeRequest = require('request')
+const makeRequest = require('request');
 
 const randomBytesAsync = promisify(crypto.randomBytes);
 
@@ -49,7 +50,6 @@ exports.postLogin = (req, res, next) => {
     }
 
     requestLogin(req, res, next, user, 'Success! You are logged in.', req.session.returnTo || '/');
-
   })(req, res, next);
 };
 
@@ -424,22 +424,20 @@ exports.postForgot = (req, res, next) => {
 
 
 function requestLogin(req, res, next, user, msg, redirectUrl) {
-
   req.logIn(user, (err) => {
     if (err) {
       return next(err);
     }
 
     logInBackEnd(user.email, (err, httpResponse, body) => {
-
       try {
         let jsonBody = JSON.parse(body);
 
         if (jsonBody.errors && Array.isArray(jsonBody.errors)) {
-          for (let error of body.errors) {
-            let keys = Object.keys(err);
-            let flashData = {};
-            flashData[keys[0]] = 'BACKEND: ' + error[key[0]];
+          for (const error of body.errors) {
+            const keys = Object.keys(err);
+            const flashData = {};
+            flashData[keys[0]] = `BACKEND: ${error[keys[0]]}`;
             req.flash('errors', flashData);
           }
         }
