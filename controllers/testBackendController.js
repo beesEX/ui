@@ -3,60 +3,41 @@
  * Created by Ngoc Son Le.
  */
 
-const makeRequest = require('request')
+const makeRequest = require('request');
 
 exports.index = (req, res) => {
 
-    let backendTestHelloWorldUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+  let backendTestHelloWorldUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+  backendTestHelloWorldUrl += process.env.BACKEND_TEST_CONNECT_URL || '/test/helloWorld';
 
-    backendTestHelloWorldUrl += process.env.BACKEND_TEST_CONNECT_URL || '/test/helloWorld';
+  var options = {
+    url: backendTestHelloWorldUrl,
+    headers: {
+      Cookie: 'auth=' + req.session.jwtToken
+    }
+  };
 
-    var options = {
+  makeRequest(options, (err, httpResponse, body) => {
+    //no need to handle error yet
+    let bodyAsJSON = JSON.parse(body);
 
-        url: backendTestHelloWorldUrl,
+    if (bodyAsJSON.errors) {
+      let arrayOfErrors;
 
-        headers: {
+      if (Array.isArray(bodyAsJSON.errors)) {
+        arrayOfErrors = bodyAsJSON.errors;
+      }
+      else {
+        arrayOfErrors = [new Error(bodyAsJSON.errors.toString())];
+      }
 
-            Cookie: 'auth=' + req.session.jwtToken
+      for (let error of arrayOfErrors) {
+        req.flash('errors', { msg: error.message });
+      }
+    }
 
-        }
-
-    };
-
-    makeRequest(options, (err, httpResponse, body) => {
-
-        //no need to handle error yet
-        let bodyAsJSON = JSON.parse(body);
-
-        if(bodyAsJSON.errors){
-
-            let arrayOfErrors;
-
-            if(Array.isArray(bodyAsJSON.errors)){
-
-                arrayOfErrors = bodyAsJSON.errors;
-
-            }
-            else{
-
-                arrayOfErrors = [new Error(bodyAsJSON.errors.toString())]
-
-            }
-
-            for(let error of arrayOfErrors){
-
-                req.flash('errors',{msg: error.message});
-
-            }
-
-        }
-
-        res.render('helloWorldBackEnd', {
-
-            message: bodyAsJSON.message
-
-        });
+    res.render('helloWorldBackEnd', {
+      message: bodyAsJSON.message
     });
-
-
+  });
 };
