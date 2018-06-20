@@ -7,6 +7,7 @@ const User = require('../models/User');
 const makeRequest = require('request');
 
 const randomBytesAsync = promisify(crypto.randomBytes);
+const { logger } = global;
 
 /**
  * GET /login
@@ -425,6 +426,7 @@ exports.postForgot = (req, res, next) => {
 
 function requestLogin(req, res, next, user, msg, redirectUrl) {
   req.logIn(user, (err) => {
+    logger.info(`initiate a login session for user with email=${user.email} by requesting JWT from backend`);
     if (err) {
       return next(err);
     }
@@ -467,5 +469,6 @@ function logInBackEnd(uniqueId, callback) {
     }
   };
 
+  logger.info(`requesting JWT from backend API: ${JSON.stringify(options)}`);
   makeRequest.post(options, callback);
 }

@@ -4,6 +4,7 @@
  */
 
 const makeRequest = require('request');
+const { logger } = global;
 
 exports.index = (req, res) => {
 
@@ -16,6 +17,8 @@ exports.index = (req, res) => {
       Cookie: 'auth=' + req.session.jwtToken
     }
   };
+
+  logger.info(`UI making request to secured backend API: ${JSON.stringify(options)}`);
 
   makeRequest(options, (err, httpResponse, body) => {
     //no need to handle error yet
