@@ -66,23 +66,23 @@ Prerequisites
 screencast by Alex Ford that teaches Node and Express from scratch. Alternatively,
 here is another great tutorial for complete beginners - [Getting Started With Node.js, Express, MongoDB](http://cwbuecheler.com/web/tutorials/2013/node-express-mongo/).
 
-Getting Started
+Getting Started - how to start beesEX UI-Server
 ---------------
 
 The easiest way to get started is to clone the repository:
 
 ```bash
 # Get the latest snapshot
-git clone https://github.com/sahat/hackathon-starter.git myproject
+git clone https://github.com/lht147/beesEX-UI beesEX-UI
 
 # Change directory
-cd myproject
+cd beesEX-UI
 
 # Install NPM dependencies
 npm install
 
 # Then simply start your app
-node app.js
+npm start
 ```
 
 Project Structure
