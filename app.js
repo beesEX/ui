@@ -118,9 +118,10 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 
 /**
- * Primary app routes.
+ * public routes, no authentication required
  */
 app.get('/', homeController.index);
+
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
 app.get('/logout', userController.logout);
@@ -130,14 +131,19 @@ app.get('/reset/:token', userController.getReset);
 app.post('/reset/:token', userController.postReset);
 app.get('/signup', userController.getSignup);
 app.post('/signup', userController.postSignup);
+
 app.get('/contact', contactController.getContact);
 app.post('/contact', contactController.postContact);
+
+/**
+ * secured routes, authentication required
+ */
 app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
 app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
 app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
-app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userController.getOauthUnlink);
-app.get('/backendExample', testBackendController.index);
+
+app.get('/backendExample', passportConfig.isAuthenticated, testBackendController.index);
 
 /**
  * Error Handler.
