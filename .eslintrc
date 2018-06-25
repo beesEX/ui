@@ -17,6 +17,12 @@
     "no-console": 0,
     "no-plusplus": 0,
     "no-unused-expressions": 0,
-    "chai-friendly/no-unused-expressions": 2
+    "chai-friendly/no-unused-expressions": 2,
+    "keyword-spacing": 0,
+    "padded-blocks": 0,
+    "array-bracket-spacing":0,
+    "computed-property-spacing": 0,
+    "brace-style": 0,
+    "no-trailing-spaces": 0
   }
 }
