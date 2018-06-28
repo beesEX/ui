@@ -14,8 +14,10 @@
           a.nav-link(href='/contact') Contact
         li.nav-item(class=(title === 'Status') ? 'active' : undefined)
           a.nav-link(href='/status') Status
+          li.nav-item(class=(title === 'Market') ? 'active' : undefined)
+            a.nav-link(href='/market/BTC_USDT') Market
         li.nav-item(class=(title === 'Connect to Backend Example') ? 'active' : undefined)
-            a.nav-link(href='/backendExample') Connect to Backend Example
+          a.nav-link(href='/backendExample') Connect to Backend Example
       ul.nav.navbar-nav.ml-auto
         if !user
           li.nav-item(class=(title === 'Login') ? 'active' : undefined)

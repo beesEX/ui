@@ -114,3 +114,92 @@ textarea {
 .far {
   margin-right: 6px;
 }
+
+.market-form-container{
+
+  border-right:$nav-tabs-border-width solid $nav-tabs-border-color;
+
+  border-left: $nav-tabs-border-width solid $nav-tabs-border-color;
+
+  border-bottom: $nav-tabs-border-width solid $nav-tabs-border-color;
+
+  padding: ($grid-gutter-width / 2);
+
+  background-color: $gray-100;
+
+}
+.market-form-buy-part{
+
+
+  border-right: $nav-tabs-border-width solid $nav-tabs-border-color;
+
+  padding-right: ($grid-gutter-width);
+
+}
+
+.market-form-sell-part{
+
+  padding-left: ($grid-gutter-width);
+}
+
+.market-total-input{
+
+  margin-top: 40px;
+
+}
+
+.market-input{
+
+  border-right: 0px;
+
+}
+
+.market-input-fake-placeholder{
+
+  background-color: white;
+
+}
+
+.market-input-fake-placeholder > strong{
+
+  color: #bbc4cc;
+
+}
+
+.market-form-submit-button{
+
+  padding-left: ($grid-gutter-width / 2);
+
+  padding-right: ($grid-gutter-width / 2);
+
+}
+
+.market-wallet-currency{
+
+  text-align: right;
+
+}
+
+.market-wallet-quantity {
+
+  text-align: left;
+
+}
+
+.market-wallet-symbol{
+
+  text-align: right;
+
+}
+
+.nav-link.active{
+
+  color: $orange !important;
+
+  background-color: $gray-100 !important;
+
+  font-weight: bold;
+
+  border-bottom-color: $gray-100 !important;
+
+}

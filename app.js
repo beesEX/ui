@@ -27,6 +27,7 @@ dotenv.load({ path: '.env.example' });
  * Configure a global logger
  */
 global.logger = require('./config/logger');
+
 const { logger } = global;
 
 /**
@@ -35,6 +36,7 @@ const { logger } = global;
 const homeController = require('./controllers/home');
 const userController = require('./controllers/user');
 const contactController = require('./controllers/contact');
+const marketController = require('./controllers/market');
 const testBackendController = require('./controllers/testBackendController');
 
 /**
@@ -144,6 +146,11 @@ app.post('/account/password', passportConfig.isAuthenticated, userController.pos
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
 
 app.get('/backendExample', passportConfig.isAuthenticated, testBackendController.index);
+
+/**
+ * market
+ */
+app.get('/market/:symbol', passportConfig.isAuthenticated, marketController.index);
 
 /**
  * Error Handler.
