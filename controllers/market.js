@@ -7,7 +7,7 @@ const { logger } = global;
 
 exports.index = (req, res) => {
 
-  logger.debug(`Market index page with id ${req.params.id} gets accessed`);
+  logger.debug(`Market index page with symbol ${req.params.symbol} gets accessed`);
 
   const arrayOfCurrencies = req.params.symbol.split('_');
 
