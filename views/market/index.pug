@@ -1,46 +1,10 @@
 extends ../layout
 
 block content
-  p.lead #{heading}
-  hr
-  .row
-    ul.nav.nav-tabs.col-12
-      li.nav-item
-        a.nav-link.active Limit
-      li.nav-item
-        a.nav-link Market
-  .row.market-form-container
-    .col-6.market-form-buy-part
-      form
-        -
-          var data = {
-
-            action: 'Kaufen',
-
-            walletQuantity: 100,
-
-            walletCurrency: baseCurrency
-
-          }
-
-        include tradeForm.pug
-        .row.form-group.market-form-submit-button
-          button.btn.btn-success.col-12(type='button') #{data.action} #{currency}
-
-    .col-6.market-form-sell-part
-      form
-        -
-          data = {
-
-            action: 'Verkaufen',
-
-            walletQuantity: 100,
-
-            walletCurrency: currency
-
-          }
-
-        include tradeForm.pug
-        .row.form-group.market-form-submit-button
-          button.btn.btn-danger.col-12(type='button') #{data.action} #{currency}
+  div#market-content
+  script.
+    window.market = {}
+    window.market.currency = '#{currency}';
+    window.market.baseCurrency = '#{baseCurrency}'
+  script(src='/js/market/market.js')
 

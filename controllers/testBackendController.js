@@ -3,7 +3,7 @@
  * Created by Ngoc Son Le.
  */
 
-const wrapRequest = require('../util/requestToBackEnd');
+const wrapRequest = require('../util/createRequestToBackend');
 
 const { logger } = global;
 

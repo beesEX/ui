@@ -37,6 +37,7 @@ const homeController = require('./controllers/home');
 const userController = require('./controllers/user');
 const contactController = require('./controllers/contact');
 const marketController = require('./controllers/market');
+const orderController = require('./controllers/order');
 const testBackendController = require('./controllers/testBackendController');
 
 /**
@@ -72,7 +73,10 @@ app.use(sass({
   src: path.join(__dirname, 'public'),
   dest: path.join(__dirname, 'public')
 }));
-//app.use(logger('dev')); // TODO find out how to configure winston logger for expressJS
+
+// TODO find out how to configure winston logger for expressJS
+// app.use(logger('dev'));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(expressValidator());
@@ -90,7 +94,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
+  if (req.path === '/api/upload' || req.xhr) { // ajax doesn't need csrf token, because you can't csrf with it
     next();
   } else {
     lusca.csrf()(req, res, next);
@@ -150,7 +154,14 @@ app.get('/backendExample', passportConfig.isAuthenticated, testBackendController
 /**
  * market
  */
+
 app.get('/market/:symbol', passportConfig.isAuthenticated, marketController.index);
+
+/**
+ * order
+ */
+
+app.post('/order/place', passportConfig.isAuthenticated, orderController.placeOrder);
 
 /**
  * Error Handler.

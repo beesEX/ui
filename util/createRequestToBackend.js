@@ -5,9 +5,11 @@
 
 const request = require('request');
 
+const { logger } = global;
+
 const backendBasedUrl = process.env.BACKEND_URL || 'http://localhost:3001';
 
-function wrapRequest(req) {
+function createRequest(req) {
 
   if(!req.session) {
 
@@ -15,17 +17,19 @@ function wrapRequest(req) {
 
   }
 
+  const defaultHeaders = {};
+
   if(!req.session.jwtToken) {
 
-    throw new Error('can not find jwt token in session of req object');
+    logger.warn('can not find jwt token in session of req object');
+
 
   }
+  else{
 
-  const defaultHeaders = {
+    defaultHeaders.Cookie = `auth=${req.session.jwtToken}`;
 
-    Cookie: `auth=${req.session.jwtToken}`
-
-  };
+  }
 
   const defaultOptions = {
 
@@ -39,4 +43,4 @@ function wrapRequest(req) {
 
 }
 
-module.exports = wrapRequest;
+module.exports = createRequest;

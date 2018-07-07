@@ -4,17 +4,71 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
-const makeRequest = require('request');
+const createRequestToBackend = require('../util/createRequestToBackend');
 
 const randomBytesAsync = promisify(crypto.randomBytes);
 const { logger } = global;
+
+function requestLogin(req, res, next, user, msg, redirectUrl) {
+  req.logIn(user, (err) => {
+    logger.info(`initiate a login session for user with email=${user.email} by requesting JWT from backend`);
+    if(err) {
+      return next(err);
+    }
+
+    const options = {
+      url: process.env.BACKEND_SIGN_IN,
+      form: {
+        email: user.email
+      }
+    };
+    const requestToBackend = createRequestToBackend(req);
+    requestToBackend.post(options, (err, httpResponse, body) => {
+      if(err) {
+        logger.warn(err);
+        res.redirect(redirectUrl);
+      }
+      else if(body) {
+        try {
+          const jsonBody = JSON.parse(body);
+
+          if(jsonBody.errors && Array.isArray(jsonBody.errors)) {
+            for(const error of body.errors) {
+              const keys = Object.keys(err);
+              const flashData = {};
+              flashData[ keys[ 0 ] ] = `BACKEND: ${error[ keys[ 0 ] ]}`;
+              req.flash('errors', flashData);
+            }
+          }
+          else{
+            if(msg) {
+              req.flash('success', { msg });
+            }
+
+            req.session.jwtToken = jsonBody.token;
+            req.session.save();
+          }
+
+          res.redirect(redirectUrl);
+        }
+        catch(error) {
+          return next(error);
+        }
+      }
+      else{
+        logger.warn('backend sent no data back');
+        res.redirect(redirectUrl);
+      }
+    });
+  });
+}
 
 /**
  * GET /login
  * Login page.
  */
 exports.getLogin = (req, res) => {
-  if (req.user) {
+  if(req.user) {
     return res.redirect('/');
   }
   res.render('account/login', {
@@ -36,16 +90,16 @@ exports.postLogin = (req, res, next) => {
 
   const errors = req.validationErrors();
 
-  if (errors) {
+  if(errors) {
     req.flash('errors', errors);
     return res.redirect('/login');
   }
 
   passport.authenticate('local', (err, user, info) => {
-    if (err) {
+    if(err) {
       return next(err);
     }
-    if (!user) {
+    if(!user) {
       req.flash('errors', info);
       return res.redirect('/login');
     }
@@ -61,7 +115,7 @@ exports.postLogin = (req, res, next) => {
 exports.logout = (req, res) => {
   req.logout();
   req.session.destroy((err) => {
-    if (err) console.log('Error : Failed to destroy the session during logout.', err);
+    if(err) console.log('Error : Failed to destroy the session during logout.', err);
     req.user = null;
     res.redirect('/');
   });
@@ -72,7 +126,7 @@ exports.logout = (req, res) => {
  * Signup page.
  */
 exports.getSignup = (req, res) => {
-  if (req.user) {
+  if(req.user) {
     return res.redirect('/');
   }
   res.render('account/signup', {
@@ -96,7 +150,7 @@ exports.postSignup = (req, res, next) => {
 
   const errors = req.validationErrors();
 
-  if (errors) {
+  if(errors) {
     req.flash('errors', errors);
     return res.redirect('/signup');
   }
@@ -107,15 +161,15 @@ exports.postSignup = (req, res, next) => {
   });
 
   User.findOne({ email: req.body.email }, (err, existingUser) => {
-    if (err) {
+    if(err) {
       return next(err);
     }
-    if (existingUser) {
+    if(existingUser) {
       req.flash('errors', { msg: 'Account with that email address already exists.' });
       return res.redirect('/signup');
     }
     user.save((err) => {
-      if (err) {
+      if(err) {
         return next(err);
       }
 
@@ -147,13 +201,13 @@ exports.postUpdateProfile = (req, res, next) => {
 
   const errors = req.validationErrors();
 
-  if (errors) {
+  if(errors) {
     req.flash('errors', errors);
     return res.redirect('/account');
   }
 
   User.findById(req.user.id, (err, user) => {
-    if (err) {
+    if(err) {
       return next(err);
     }
     user.email = req.body.email || '';
@@ -162,8 +216,8 @@ exports.postUpdateProfile = (req, res, next) => {
     user.profile.location = req.body.location || '';
     user.profile.website = req.body.website || '';
     user.save((err) => {
-      if (err) {
-        if (err.code === 11000) {
+      if(err) {
+        if(err.code === 11000) {
           req.flash('errors', { msg: 'The email address you have entered is already associated with an account.' });
           return res.redirect('/account');
         }
@@ -187,18 +241,18 @@ exports.postUpdatePassword = (req, res, next) => {
 
   const errors = req.validationErrors();
 
-  if (errors) {
+  if(errors) {
     req.flash('errors', errors);
     return res.redirect('/account');
   }
 
   User.findById(req.user.id, (err, user) => {
-    if (err) {
+    if(err) {
       return next(err);
     }
     user.password = req.body.password;
     user.save((err) => {
-      if (err) {
+      if(err) {
         return next(err);
       }
       req.flash('success', { msg: 'Password has been changed.' });
@@ -213,7 +267,7 @@ exports.postUpdatePassword = (req, res, next) => {
  */
 exports.postDeleteAccount = (req, res, next) => {
   User.remove({ _id: req.user.id }, (err) => {
-    if (err) {
+    if(err) {
       return next(err);
     }
     req.logout();
@@ -227,7 +281,7 @@ exports.postDeleteAccount = (req, res, next) => {
  * Reset Password page.
  */
 exports.getReset = (req, res, next) => {
-  if (req.isAuthenticated()) {
+  if(req.isAuthenticated()) {
     return res.redirect('/');
   }
   User
@@ -235,10 +289,10 @@ exports.getReset = (req, res, next) => {
     .where('passwordResetExpires')
     .gt(Date.now())
     .exec((err, user) => {
-      if (err) {
+      if(err) {
         return next(err);
       }
-      if (!user) {
+      if(!user) {
         req.flash('errors', { msg: 'Password reset token is invalid or has expired.' });
         return res.redirect('/forgot');
       }
@@ -260,7 +314,7 @@ exports.postReset = (req, res, next) => {
 
   const errors = req.validationErrors();
 
-  if (errors) {
+  if(errors) {
     req.flash('errors', errors);
     return res.redirect('back');
   }
@@ -271,7 +325,7 @@ exports.postReset = (req, res, next) => {
       .where('passwordResetExpires')
       .gt(Date.now())
       .then((user) => {
-        if (!user) {
+        if(!user) {
           req.flash('errors', { msg: 'Password reset token is invalid or has expired.' });
           return res.redirect('back');
         }
@@ -281,7 +335,7 @@ exports.postReset = (req, res, next) => {
         return user.save()
           .then(() => new Promise((resolve, reject) => {
             req.logIn(user, (err) => {
-              if (err) {
+              if(err) {
                 return reject(err);
               }
               resolve(user);
@@ -290,7 +344,7 @@ exports.postReset = (req, res, next) => {
       });
 
   const sendResetPasswordEmail = (user) => {
-    if (!user) {
+    if(!user) {
       return;
     }
     const transporter = nodemailer.createTransport({
@@ -315,7 +369,7 @@ exports.postReset = (req, res, next) => {
   resetPassword()
     .then(sendResetPasswordEmail)
     .then(() => {
-      if (!res.finished) res.redirect('/');
+      if(!res.finished) res.redirect('/');
     })
     .catch(err => next(err));
 };
@@ -325,7 +379,7 @@ exports.postReset = (req, res, next) => {
  * Forgot Password page.
  */
 exports.getForgot = (req, res) => {
-  if (req.isAuthenticated()) {
+  if(req.isAuthenticated()) {
     return res.redirect('/');
   }
   res.render('account/forgot', {
@@ -345,7 +399,7 @@ exports.postForgot = (req, res, next) => {
 
   const errors = req.validationErrors();
 
-  if (errors) {
+  if(errors) {
     req.flash('errors', errors);
     return res.redirect('/forgot');
   }
@@ -357,9 +411,9 @@ exports.postForgot = (req, res, next) => {
     User
       .findOne({ email: req.body.email })
       .then((user) => {
-        if (!user) {
+        if(!user) {
           req.flash('errors', { msg: 'Account with that email address does not exist.' });
-        } else {
+        } else{
           user.passwordResetToken = token;
           user.passwordResetExpires = Date.now() + 3600000; // 1 hour
           user = user.save();
@@ -368,7 +422,7 @@ exports.postForgot = (req, res, next) => {
       });
 
   const sendForgotPasswordEmail = (user) => {
-    if (!user) {
+    if(!user) {
       return;
     }
     const token = user.passwordResetToken;
@@ -401,52 +455,3 @@ exports.postForgot = (req, res, next) => {
     .catch(next);
 };
 
-
-function requestLogin(req, res, next, user, msg, redirectUrl) {
-  req.logIn(user, (err) => {
-    logger.info(`initiate a login session for user with email=${user.email} by requesting JWT from backend`);
-    if (err) {
-      return next(err);
-    }
-
-    logInBackEnd(user.email, (err, httpResponse, body) => {
-      try {
-        let jsonBody = JSON.parse(body);
-
-        if (jsonBody.errors && Array.isArray(jsonBody.errors)) {
-          for (const error of body.errors) {
-            const keys = Object.keys(err);
-            const flashData = {};
-            flashData[keys[0]] = `BACKEND: ${error[keys[0]]}`;
-            req.flash('errors', flashData);
-          }
-        }
-        else {
-          msg && req.flash('success', { msg: msg });
-          req.session.jwtToken = jsonBody.token;
-          req.session.save();
-        }
-
-        res.redirect(redirectUrl);
-      }
-      catch (error) {
-        return next(error);
-      }
-    });
-  });
-}
-
-function logInBackEnd(uniqueId, callback) {
-  let backendLoginUrl = process.env.BACKEND_URL || 'http://localhost:3001';
-  backendLoginUrl += process.env.BACKEND_SIGN_IN || '/account/signin';
-
-  var options = {
-    url: backendLoginUrl,
-    form: {
-      email: uniqueId
-    }
-  };
-
-  logger.info(`requesting JWT from backend API: ${JSON.stringify(options)}`);
-  makeRequest.post(options, callback);
-}

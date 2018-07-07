@@ -117,61 +117,49 @@ textarea {
 
 .market-form-container{
 
-  border-right:$nav-tabs-border-width solid $nav-tabs-border-color;
-
-  border-left: $nav-tabs-border-width solid $nav-tabs-border-color;
-
-  border-bottom: $nav-tabs-border-width solid $nav-tabs-border-color;
-
   padding: ($grid-gutter-width / 2);
-
-  background-color: $gray-100;
 
 }
 .market-form-buy-part{
 
-
-  border-right: $nav-tabs-border-width solid $nav-tabs-border-color;
+  border-right: $nav-tabs-border-width/2 solid $nav-tabs-border-color;
 
   padding-right: ($grid-gutter-width);
+
+  padding-left: ($grid-gutter-width);
 
 }
 
 .market-form-sell-part{
 
+  border-left: $nav-tabs-border-width/2 solid $nav-tabs-border-color;
+
+  padding-right: ($grid-gutter-width);
+
   padding-left: ($grid-gutter-width);
+
+}
+.market-form-sell-part > div{
+
+  flex-wrap: nowrap !important;
+
 }
 
 .market-total-input{
 
-  margin-top: 40px;
+  margin-top: ($grid-gutter-width * 2) !important;
 
 }
 
 .market-input{
 
-  border-right: 0px;
-
-}
-
-.market-input-fake-placeholder{
-
-  background-color: white;
-
-}
-
-.market-input-fake-placeholder > strong{
-
-  color: #bbc4cc;
+  margin-top: ($grid-gutter-width/2) !important;
 
 }
 
 .market-form-submit-button{
 
-  padding-left: ($grid-gutter-width / 2);
-
-  padding-right: ($grid-gutter-width / 2);
-
+  margin-top: ($grid-gutter-width) !important;
 }
 
 .market-wallet-currency{
@@ -192,14 +180,19 @@ textarea {
 
 }
 
-.nav-link.active{
-
-  color: $orange !important;
-
-  background-color: $gray-100 !important;
+.market-input-label{
 
   font-weight: bold;
 
-  border-bottom-color: $gray-100 !important;
+}
 
+.orderHistoryHeadline{
+
+  margin-top: ($grid-gutter-width) !important;
+
+}
+
+.order-history-table-wrapper{
+
+  overflow: auto;
 }
