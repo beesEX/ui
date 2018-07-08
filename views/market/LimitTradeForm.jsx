@@ -17,39 +17,44 @@ import Icon from '@material-ui/core/Icon';
 import ajax from '../util/ajax';
 import Order from '../../models/Order';
 
+function getDefaultState(balance) {
+
+  return {
+
+    price: {
+
+      value: NaN,
+
+      error: true,
+
+      helperText: 'Input a price greater or equal 0',
+
+      errorText: 'Input a price greater or equal 0'
+
+    },
+
+    quantity: {
+
+      value: NaN,
+
+      error: true,
+
+      helperText: `Input quantity between 0 und ${balance}`,
+
+      errorText: `Input quantity between 0 und ${balance}`
+
+    }
+
+  };
+}
+
 export default class LimitTradeForm extends React.Component {
 
   constructor(props) {
 
     super(props);
 
-    this.state = {
-
-      price: {
-
-        value: 0,
-
-        error: false,
-
-        helperText: 'Input a price greater or equal 0',
-
-        errorText: ''
-
-      },
-
-      quantity: {
-
-        value: 0,
-
-        error: false,
-
-        helperText: `Input quantity between 0 und ${props.balance}`,
-
-        errorText: ''
-
-      }
-
-    };
+    this.state = getDefaultState(props.balance);
 
   }
 
@@ -57,7 +62,7 @@ export default class LimitTradeForm extends React.Component {
 
     const newState = {};
 
-    const newValue = event.target.value;
+    const newValue = parseInt(event.target.value);
 
     const objectToUpdate = Object.assign({}, this.state[ propertyName ]);
 
@@ -65,21 +70,38 @@ export default class LimitTradeForm extends React.Component {
 
     objectToUpdate.value = newValue;
 
-    if(newValue < 0) {
+    let noError = true;
+
+    if(Number.isNaN(newValue) || newValue < 0) {
 
       objectToUpdate.error = true;
 
-      objectToUpdate.errorText = `Price has to be greater or equal 0`;
+      if(propertyName === 'price') {
+
+        objectToUpdate.errorText = 'Price has to be greater or equal 0';
+
+      }
+      else{
+
+        objectToUpdate.errorText = `Quantity has to be a number between 0 and ${this.props.balance}`;
+
+      }
+
+      noError = false;
 
     }
-    else if(propertyName === 'quantity' && newValue > this.props.balance) {
+
+    if(propertyName === 'quantity' && newValue > this.props.balance) {
 
       objectToUpdate.error = true;
 
       objectToUpdate.errorText = `Quantity has to be a number between 0 and ${this.props.balance}`;
 
+      noError = false;
+
     }
-    else{
+
+    if(noError) {
 
       objectToUpdate.error = false;
 
@@ -138,11 +160,13 @@ export default class LimitTradeForm extends React.Component {
           }
           else if(responseObject.createdOrder && this.props.orderHistoryTable) {
 
-            if(this.props.orderHistoryTable.current){
+            if(this.props.orderHistoryTable.current) {
 
               this.props.orderHistoryTable.current.push(responseObject.createdOrder);
 
             }
+
+            this.setState(getDefaultState(this.props.balance));
 
           }
 
@@ -165,9 +189,20 @@ export default class LimitTradeForm extends React.Component {
 
       totalHelperText,
 
-      total = (this.state.quantity.value * this.state.price.value).toFixed(10),
+      total,
 
       idPrefix = `market-limit-${this.props.action.toLowerCase()}`;
+
+    if(Number.isNaN(this.state.quantity.value) || Number.isNaN(this.state.price.value)) {
+
+      total = '';
+
+    }
+    else{
+
+      total = (this.state.quantity.value * this.state.price.value).toFixed(10);
+
+    }
 
     if(this.props.action === 'BUY') {
 
@@ -178,7 +213,11 @@ export default class LimitTradeForm extends React.Component {
 
       balanceCurrency = this.props.baseCurrency;
 
-      totalHelperText = `Buy ${this.state.quantity.value} ${this.props.currency} für ${total} ${this.props.baseCurrency}`;
+      if(total) {
+
+        totalHelperText = `Buy ${this.state.quantity.value} ${this.props.currency} für ${total} ${this.props.baseCurrency}`;
+
+      }
 
     }
     else{
@@ -189,7 +228,11 @@ export default class LimitTradeForm extends React.Component {
 
       balanceCurrency = this.props.currency;
 
-      totalHelperText = `Sell ${this.state.quantity.value} ${this.props.currency} für ${total} ${this.props.baseCurrency}`;
+      if(total) {
+
+        totalHelperText = `Sell ${this.state.quantity.value} ${this.props.currency} für ${total} ${this.props.baseCurrency}`;
+
+      }
 
     }
 
@@ -236,7 +279,7 @@ export default class LimitTradeForm extends React.Component {
 
           <Input
             id={`${idPrefix}-price`}
-            value={this.state.price.value}
+            value={Number.isNaN(this.state.price.value) ? '' : this.state.price.value}
             type={'number'}
             onChange={this.createChangeHandler('price')}
             endAdornment={<InputAdornment
@@ -262,7 +305,7 @@ export default class LimitTradeForm extends React.Component {
 
           <Input
             id={`${idPrefix}-quantity`}
-            value={this.state.quantity.value}
+            value={Number.isNaN(this.state.quantity.value) ? '' : this.state.quantity.value}
             type={'number'}
             onChange={this.createChangeHandler('quantity')}
             endAdornment={<InputAdornment position="end">{this.props.currency}</InputAdornment>}
@@ -289,7 +332,7 @@ export default class LimitTradeForm extends React.Component {
 
           <Input
             id={`${idPrefix}-total`}
-            value={total}
+            value={Number.isNaN(total) ? '' : total}
             endAdornment={<InputAdornment position="end">{this.props.baseCurrency}</InputAdornment>}
             inputProps={{
               'aria-label': 'Total',
