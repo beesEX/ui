@@ -103,8 +103,9 @@ exports.postLogin = (req, res, next) => {
       req.flash('errors', info);
       return res.redirect('/login');
     }
-
-    requestLogin(req, res, next, user, 'Success! You are logged in.', req.session.returnTo || '/');
+    req.session.jwtToken = info.token;
+    req.session.save();
+    res.redirect(req.session.returnTo || '/');
   })(req, res, next);
 };
 
