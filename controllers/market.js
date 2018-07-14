@@ -3,6 +3,8 @@
  * Created by Ngoc Son Le.
  */
 
+const { getOrdersFromBackEnd } = require('./order');
+
 const { logger } = global;
 
 exports.index = (req, res) => {
@@ -11,18 +13,41 @@ exports.index = (req, res) => {
 
   const arrayOfCurrencies = req.params.symbol.split('_');
 
-  const currency = arrayOfCurrencies[ 0 ];
+  [ req.params.currency, req.params.baseCurrency ] = arrayOfCurrencies;
 
-  const baseCurrency = arrayOfCurrencies[ 1 ];
+  const limit = 10;
 
-  res.render('market', {
+  const extraOptions = {
 
-    heading: req.params.symbol.replace('_', '/'),
+    limit,
 
-    currency,
+    currency: req.params.currency,
 
-    baseCurrency
+    baseCurrency: req.params.baseCurrency
+
+    // TODO status
+
+  };
+
+  const dataPromise = getOrdersFromBackEnd(req, extraOptions);
+
+  dataPromise.then((data) => {
+
+    data.orders = JSON.stringify(data.orders);
+
+    data.limit = limit;
+
+    res.render('market', data);
+
+  }, (error) => {
+
+    req.flash('errors', { msg: error.message });
+
+    const data = {};
+
+    res.render('market', data);
 
   });
 
 };
+

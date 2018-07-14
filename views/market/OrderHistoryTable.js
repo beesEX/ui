@@ -11,6 +11,9 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Util from '../../util/Util';
+import TableFooter from '@material-ui/core/TableFooter';
+import TablePagination from '@material-ui/core/TablePagination';
+import ajax from '../util/ajax';
 
 export default class OrderHistoryTable extends React.Component {
 
@@ -20,8 +23,17 @@ export default class OrderHistoryTable extends React.Component {
 
     this.state = {
 
-      orders: []
+      orders: props.orders || [],
+
+      page: 0,
+
+      count: props.count || ((props.orders) ? props.orders.length : 0),
+
+      rowPerPage : this.props.rowPerPage || 10
+
     };
+
+    console.log(this.state);
 
   }
 
@@ -29,9 +41,47 @@ export default class OrderHistoryTable extends React.Component {
 
     this.setState({
 
-      orders: [ order, ...this.state.orders ]
+      count: this.state.count +1,
+
+      orders: [ order, ...this.state.orders.slice(0,this.state.orders.length-1) ]
 
     });
+  };
+
+  handleChangePage = (event, page) => {
+
+    const options = {
+
+      offset: Math.max(page * this.state.rowPerPage, 0),
+
+      limit: this.state.rowPerPage
+
+    };
+
+    ajax('GET', '/order/history', options).then( (responseText) => {
+
+      const data = JSON.parse(responseText);
+
+      if(data.error){
+
+        console.error(data.error);
+
+      }
+      else{
+
+        this.setState({
+
+          orders: data.orders,
+
+          count: data.count,
+
+          page: page
+
+        })
+
+      }
+
+    })
   };
 
   render() {
@@ -114,6 +164,19 @@ export default class OrderHistoryTable extends React.Component {
               }
 
             </TableBody>
+
+            <TableFooter>
+              <TableRow>
+                <TablePagination
+                  colSpan={10}
+                  count={this.state.count}
+                  rowsPerPage={this.state.rowPerPage}
+                  rowsPerPageOptions={[]}
+                  page={this.state.page}
+                  onChangePage={this.handleChangePage}
+                />
+              </TableRow>
+            </TableFooter>
 
           </Table>
 

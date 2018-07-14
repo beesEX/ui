@@ -29,6 +29,7 @@
     "computed-property-spacing": 0,
     "brace-style": 0,
     "no-trailing-spaces": 0,
-    "no-restricted-syntax": 0
+    "no-restricted-syntax": 0,
+    "object-curly-newline": 0
   }
 }

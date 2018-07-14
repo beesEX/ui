@@ -5,6 +5,9 @@ block content
   script.
     window.market = {}
     window.market.currency = '#{currency}';
-    window.market.baseCurrency = '#{baseCurrency}'
+    window.market.baseCurrency = '#{baseCurrency}';
+    window.market.orders = !{orders};
+    window.market.count= #{count};
+    window.market.limit= #{limit};
   script(src='/js/market/market.js')
 

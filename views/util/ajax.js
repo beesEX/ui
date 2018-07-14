@@ -47,7 +47,7 @@ function encodeJSON(jsonObject) {
 
 }
 
-function ajax(method, url, data) {
+export default function ajax(method, url, data) {
 
   return new Promise((resolve, reject) => {
 
@@ -134,6 +134,3 @@ function ajax(method, url, data) {
   });
 
 }
-
-module.exports = ajax;
-

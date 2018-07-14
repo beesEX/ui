@@ -8,9 +8,43 @@ const monthShortHands = [ 'Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'Jun.', 'Jul.',
 
 export default class Util {
 
-  static formatDateToUTC(date) {
+  static formatDateToUTC(dateObject) {
 
-    return `${monthShortHands[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}: ${date.getUTCHours()}:${date.getUTCMinutes()}:${date.getUTCSeconds()} UTC`;
+    const date = Util.convertToTwoDigitNumber(dateObject.getUTCDate());
+
+    const year = dateObject.getUTCFullYear();
+
+    const hour = Util.convertToTwoDigitNumber(dateObject.getUTCHours());
+
+    const second = Util.convertToTwoDigitNumber(dateObject.getUTCSeconds());
+
+    const minute = Util.convertToTwoDigitNumber(dateObject.getUTCMinutes());
+
+    return `${monthShortHands[ dateObject.getUTCMonth() ]} ${date}, ${year}: ${hour}:${minute}:${second} UTC`;
+
+  }
+
+  static convertToTwoDigitNumber(numberToConvert) {
+
+    if(numberToConvert < 0) {
+
+      throw new Error(`number ${numberToConvert} has to be greater than -1`);
+
+    }
+
+    if(!Number.isInteger(numberToConvert)) {
+
+      throw new Error(`number ${numberToConvert} has to be an integer`);
+
+    }
+
+    if(numberToConvert < 10) {
+
+      return `0${numberToConvert}`;
+
+    }
+
+    return `${numberToConvert}`;
 
   }
 

@@ -121,7 +121,7 @@ class MarketContent extends React.Component {
 
         <hr/>
 
-        <OrderHistoryTable ref={this.tableRef}/>
+        <OrderHistoryTable ref={this.tableRef} orders={window.market.orders} count={window.market.count} rowPerPage={window.market.limit}/>
 
 
       </div>
