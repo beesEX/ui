@@ -1,10 +1,11 @@
 const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local');
+const createRequestToBackend = require('../util/createRequestToBackend');
 
 const User = require('../models/User');
 
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  done(null, user);
 });
 
 passport.deserializeUser((id, done) => {
@@ -16,19 +17,30 @@ passport.deserializeUser((id, done) => {
 /**
  * Sign in using Email and Password.
  */
-passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
-  User.findOne({ email: email.toLowerCase() }, (err, user) => {
-    if (err) { return done(err); }
-    if (!user) {
-      return done(null, false, { msg: `Email ${email} not found.` });
-    }
-    user.comparePassword(password, (err, isMatch) => {
-      if (err) { return done(err); }
-      if (isMatch) {
-        return done(null, user);
+passport.use(new LocalStrategy({ passReqToCallback: true, usernameField: 'email' }, (req, email, password, done) => {
+  const options = {
+    url: process.env.BACKEND_SIGN_IN,
+    form: { email, password }
+  };
+  const requestToBackend = createRequestToBackend(req);
+  requestToBackend.post(options, (err, httpResponse, body) => {
+    try {
+      const jsonBody = JSON.parse(body);
+      if (jsonBody.errors && Array.isArray(jsonBody.errors)) {
+        for (const error of body.errors) {
+          const keys = Object.keys(err);
+          const flashData = {};
+          flashData[keys[0]] = `BACKEND: ${error[keys[0]]}`;
+          return done(flashData);
+        }
       }
-      return done(null, false, { msg: 'Invalid email or password.' });
-    });
+      else {
+        return done(null, jsonBody.user.value, { token: jsonBody.token, msg: 'Success! You are logged in.' });
+      }
+    }
+    catch (error) {
+      return done(error);
+    }
   });
 }));
 
