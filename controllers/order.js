@@ -9,67 +9,6 @@ const Order = require('../models/Order');
 
 const createRequestToBackend = require('../util/createRequestToBackend');
 
-exports.placeOrder = (req, res) => {
-
-  logger.debug(`place Order ${JSON.stringify(req.body)}`);
-
-  const order = Order.fromJSOn(req.body);
-
-  const errors = order.validate(); // TODO check balance
-
-  if(Object.keys(errors).length > 0) {
-
-    res.json({
-
-      errors
-
-    });
-
-  }
-  else{
-
-    const requestToBackend = createRequestToBackend(req);
-
-    const options = {
-
-      url: process.env.BACKEND_ORDER_PLACE,
-
-      form: order.toJSON()
-    };
-
-    requestToBackend.post(options, (err, httpResponse, body) => {
-
-      if(err) {
-
-        res.json({
-
-          errors: err
-
-        });
-
-      }
-      else if(body) {
-
-        res.json({
-
-          createdOrder: JSON.parse(body)
-
-        });
-
-      }
-      else{
-
-        res.status(500)
-          .send('can not connect to backend');
-
-      }
-
-    });
-
-  }
-
-};
-
 async function getOrdersFromBackEnd(req, extraOptions) {
 
   logger.debug(`get orders from back end with params: ${(req.query) ? JSON.stringify(req.query) : undefined} and extra options: ${(extraOptions) ? JSON.stringify(extraOptions) : undefined}`);
@@ -162,7 +101,7 @@ async function getOrdersFromBackEnd(req, extraOptions) {
       }
       else{
 
-        logger.warn('can not connect to backend');
+        logger.error('can not connect to backend');
 
         reject(new Error('Unable to get active orders'));
       }
@@ -172,6 +111,67 @@ async function getOrdersFromBackEnd(req, extraOptions) {
   });
 
 }
+
+exports.placeOrder = (req, res) => {
+
+  logger.debug(`place Order ${JSON.stringify(req.body)}`);
+
+  const order = Order.fromJSOn(req.body);
+
+  const errors = order.validate(); // TODO check balance
+
+  if(Object.keys(errors).length > 0) {
+
+    res.json({
+
+      errors
+
+    });
+
+  }
+  else{
+
+    const requestToBackend = createRequestToBackend(req);
+
+    const options = {
+
+      url: process.env.BACKEND_ORDER_PLACE,
+
+      form: order.toJSON()
+    };
+
+    requestToBackend.post(options, (err, httpResponse, body) => {
+
+      if(err) {
+
+        res.json({
+
+          errors: err
+
+        });
+
+      }
+      else if(body) {
+
+        res.json({
+
+          createdOrder: JSON.parse(body)
+
+        });
+
+      }
+      else{
+
+        res.status(500)
+          .send('can not connect to backend');
+
+      }
+
+    });
+
+  }
+
+};
 
 exports.getOrdersFromBackEnd = getOrdersFromBackEnd;
 
@@ -193,4 +193,107 @@ exports.getOrders = (req, res) => {
 
   });
 
+};
+
+async function _cancelOrder(req) {
+
+  return new Promise((resolve, reject) => {
+
+    if(process.env.BACKEND_ORDER_CANCEL) {
+
+      if(req.body && req.body.orderId) {
+
+        const requestToBackend = createRequestToBackend(req);
+
+        const options = {
+
+          url: process.env.BACKEND_ORDER_CANCEL,
+
+          form: {
+
+            orderId: req.body.orderId
+
+          }
+
+        };
+
+        requestToBackend.post(options, (error) => {
+
+          if(error) {
+
+            reject(error);
+
+          }
+          else{
+
+            resolve();
+
+          }
+
+        });
+
+      }
+      else{
+
+        reject(new Error('orderId do not exist in request body'));
+
+      }
+
+    }
+    else{
+
+      reject(new Error('Url for canceling order do not exist in process.env'));
+
+    }
+
+  });
+
+}
+
+exports.cancelOrder = (req, res) => {
+
+  logger.debug(`cancel order req.body = ${JSON.stringify(req.body)}}`);
+
+  const resultPromise = _cancelOrder(req)
+    .then(() => {
+
+      const extraOptions = {
+
+        offset: req.body.offset,
+
+        limit: req.body.limit,
+
+        currency: req.body.currency,
+
+        baseCurrency: req.body.baseCurrency
+
+      };
+
+      return getOrdersFromBackEnd(req, extraOptions);
+
+    }, (error) => {
+
+      logger.error(error.message);
+
+      res.json({
+
+        error: 'Can not cancel order'
+
+      });
+
+    });
+
+  resultPromise.then((data) => {
+
+    res.json(data);
+
+  }, (error) => {
+
+    res.json({
+
+      error
+
+    });
+
+  });
 };

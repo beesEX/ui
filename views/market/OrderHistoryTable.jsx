@@ -14,6 +14,10 @@ import Util from '../../util/Util';
 import TableFooter from '@material-ui/core/TableFooter';
 import TablePagination from '@material-ui/core/TablePagination';
 import ajax from '../util/ajax';
+import IconButton from '@material-ui/core/IconButton';
+import Icon from '@material-ui/core/Icon';
+import Grid from '@material-ui/core/Grid';
+import Tooltip from '@material-ui/core/Tooltip';
 
 export default class OrderHistoryTable extends React.Component {
 
@@ -29,11 +33,9 @@ export default class OrderHistoryTable extends React.Component {
 
       count: props.count || ((props.orders) ? props.orders.length : 0),
 
-      rowPerPage : this.props.rowPerPage || 10
+      rowPerPage: this.props.rowPerPage || 10
 
     };
-
-    console.log(this.state);
 
   }
 
@@ -41,9 +43,9 @@ export default class OrderHistoryTable extends React.Component {
 
     this.setState({
 
-      count: this.state.count +1,
+      count: this.state.count + 1,
 
-      orders: [ order, ...this.state.orders.slice(0,this.state.orders.length-1) ]
+      orders: [ order, ...this.state.orders.slice(0, this.state.orders.length - 1) ]
 
     });
   };
@@ -52,36 +54,87 @@ export default class OrderHistoryTable extends React.Component {
 
     const options = {
 
-      offset: Math.max(page * this.state.rowPerPage, 0),
+      offset: Util.convertPageToOffset(this.state.offset, this.state.rowPerPage),
 
       limit: this.state.rowPerPage
 
     };
 
-    ajax('GET', '/order/history', options).then( (responseText) => {
+    ajax('GET', '/order/history', options)
+      .then((responseText) => {
 
-      const data = JSON.parse(responseText);
+        const data = JSON.parse(responseText);
 
-      if(data.error){
+        if(data.error) {
 
-        console.error(data.error);
+          console.error(data.error);
 
-      }
-      else{
+        }
+        else{
 
-        this.setState({
+          this.setState({
 
-          orders: data.orders,
+            orders: data.orders,
 
-          count: data.count,
+            count: data.count,
 
-          page: page
+            page: page
 
-        })
+          });
 
-      }
+        }
 
-    })
+      });
+  };
+
+  createDeleteButtonClickHandler = (order) => {
+
+    return () => {
+
+      const alertDialog = this.props.alertDialog.current;
+
+      alertDialog && alertDialog.show();
+
+      const dataToSent = {
+
+        orderId: order._id,
+
+        offset: Util.convertPageToOffset(this.state.page, this.state.rowPerPage),
+
+        limit: this.state.rowPerPage
+
+      };
+
+      alertDialog.setOkClickHandler(() => {
+
+        ajax('POST', '/order/cancel', dataToSent)
+          .then((responseText) => {
+
+            const parsedResponse = JSON.parse(responseText);
+
+            if(parsedResponse.error) {
+
+              console.log(parsedResponse.error);
+
+            }
+            else{
+
+              this.setState({
+
+                orders: parsedResponse.orders,
+
+                count: parsedResponse.count,
+
+              });
+
+            }
+
+          });
+
+      });
+
+    };
+
   };
 
   render() {
@@ -117,6 +170,8 @@ export default class OrderHistoryTable extends React.Component {
                 <TableCell>Placed At</TableCell>
 
                 <TableCell>Updated At</TableCell>
+
+                <TableCell>Actions</TableCell>
 
               </TableRow>
 
@@ -155,6 +210,35 @@ export default class OrderHistoryTable extends React.Component {
 
                       <TableCell>{Util.formatDateToUTC(new Date(order.lastUpdatedAt))}</TableCell>
 
+                      <TableCell>
+
+                        <Grid container={true}>
+
+                          <Tooltip title={'Delete'} placement={'left'}>
+
+                            <IconButton color={'secondary'}
+                                        onClick={this.createDeleteButtonClickHandler(order)}>
+
+                              <Icon>delete</Icon>
+
+                            </IconButton>
+
+                          </Tooltip>
+
+                          <Tooltip title={'Edit'} placement={'left'}>
+
+                            <IconButton color={'primary'}>
+
+                              <Icon>edit</Icon>
+
+                            </IconButton>
+
+                          </Tooltip>
+
+                        </Grid>
+
+                      </TableCell>
+
                     </TableRow>
 
                   );
@@ -168,7 +252,7 @@ export default class OrderHistoryTable extends React.Component {
             <TableFooter>
               <TableRow>
                 <TablePagination
-                  colSpan={10}
+                  colSpan={11}
                   count={this.state.count}
                   rowsPerPage={this.state.rowPerPage}
                   rowsPerPageOptions={[]}

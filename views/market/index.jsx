@@ -13,6 +13,7 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import LimitTradeForm from './LimitTradeForm';
 import OrderHistoryTable from './OrderHistoryTable';
+import AlertDialog from '../util/AlertDialog';
 
 class MarketContent extends React.Component {
 
@@ -27,6 +28,8 @@ class MarketContent extends React.Component {
     };
 
     this.tableRef = React.createRef();
+
+    this.alertDialogRef = React.createRef();
 
   }
 
@@ -121,7 +124,20 @@ class MarketContent extends React.Component {
 
         <hr/>
 
-        <OrderHistoryTable ref={this.tableRef} orders={window.market.orders} count={window.market.count} rowPerPage={window.market.limit}/>
+        <OrderHistoryTable
+          ref={this.tableRef}
+          orders={window.market.orders}
+          count={window.market.count}
+          rowPerPage={window.market.limit}
+          alertDialog={this.alertDialogRef}
+        />
+
+        <AlertDialog
+          ref={this.alertDialogRef}
+          title={'Delete'}
+          message={'Do you want to delete this order'}
+          okClickAction={this.tableRef.current && this.tableRef.current.removeCurrentRow()}
+        />
 
 
       </div>

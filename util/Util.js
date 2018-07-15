@@ -48,5 +48,10 @@ export default class Util {
 
   }
 
+  static convertPageToOffset(page, rowPerPage) {
+
+    return Math.max(page * rowPerPage, 0);
+  }
+
 
 }
