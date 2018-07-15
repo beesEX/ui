@@ -95,11 +95,18 @@ export default class OrderHistoryTable extends React.Component {
 
       alertDialog && alertDialog.show();
 
+      let page = this.state.page;
+
+      if(this.state.page > 0 && this.state.orders.length === 1) {
+
+        page = this.state.page - 1;
+      }
+
       const dataToSent = {
 
         orderId: order._id,
 
-        offset: Util.convertPageToOffset(this.state.page, this.state.rowPerPage),
+        offset: Util.convertPageToOffset(page, this.state.rowPerPage),
 
         limit: this.state.rowPerPage
 
@@ -171,16 +178,25 @@ export default class OrderHistoryTable extends React.Component {
             }
             else{
 
-              const originalArrayOfOrders = this.state.orders;
+              if(this.state.page > 0) {
 
-              originalArrayOfOrders.splice(index, 1);
+                this.handleChangePage(null, this.state.page);
 
+              }
+              else{
 
-              this.setState({
+                const originalArrayOfOrders = this.state.orders;
 
-                orders: [ parsedResponse.updatedOrder, ...originalArrayOfOrders ]
+                originalArrayOfOrders.splice(index, 1);
 
-              });
+                this.setState({
+
+                  orders: [ parsedResponse.updatedOrder, ...originalArrayOfOrders ]
+
+                });
+
+              }
+
 
             }
 

@@ -86,17 +86,26 @@ async function getOrdersFromBackEnd(req, extraOptions) {
 
         const parsedBody = JSON.parse(body);
 
-        resolve({
+        if(parsedBody.errors && parsedBody.errors.length > 0) {
 
-          currency: options.currency,
+          reject(new Error(parsedBody.errors[ 0 ].message));
 
-          baseCurrency: options.baseCurrency,
+        }
+        else{
 
-          orders: parsedBody.orders || [],
+          resolve({
 
-          count: parsedBody.count
+            currency: options.currency,
 
-        });
+            baseCurrency: options.baseCurrency,
+
+            orders: parsedBody.orders || [],
+
+            count: parsedBody.count
+
+          });
+
+        }
 
       }
       else{
@@ -217,12 +226,27 @@ async function _cancelOrder(req) {
 
         };
 
-        requestToBackend.post(options, (error) => {
+        requestToBackend.post(options, (error, reponse, body) => {
 
           if(error) {
 
             reject(error);
 
+          }
+          else if(body) {
+
+            const parsedBody = JSON.parse(body);
+
+            if(parsedBody.errors && parsedBody.errors.length > 0) {
+
+              reject(new Error(parsedBody.errors[ 0 ].message));
+
+            }
+            else{
+
+              reject(new Error('body is not null'));
+
+            }
           }
           else{
 

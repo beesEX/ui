@@ -47,9 +47,9 @@ function getDefaultState(props) {
 
       error: priceError,
 
-      helperText: 'Input a price greater or equal 0',
+      helperText: 'Input a price equal or greater than 0',
 
-      errorText: 'Input a price greater or equal 0'
+      errorText: 'Price has to be a number equal or greater than 0'
 
     },
 
@@ -59,9 +59,9 @@ function getDefaultState(props) {
 
       error: quantityError,
 
-      helperText: `Input quantity between 0 und ${props.balance}`,
+      helperText: (props.action === 'SELL') ? `Input quantity between 0 und ${props.balance}` : 'Input quantity equal or greater than 0',
 
-      errorText: `Input quantity between 0 und ${props.balance}`
+      errorText: (props.action === 'SELL') ? `Quantity has to be a number between 0 and ${props.balance}` : 'Quantity has to be a number equal or greater than 0'
 
     }
 
@@ -98,34 +98,50 @@ export default class LimitTradeForm extends React.Component {
 
       if(propertyName === 'price') {
 
-        objectToUpdate.errorText = 'Price has to be greater or equal 0';
+        objectToUpdate.errorText = 'Price has to be a number equal or greater than 0';
 
       }
       else{
 
-        objectToUpdate.errorText = `Quantity has to be a number between 0 and ${this.props.balance}`;
+        if(this.props.action === 'BUY') {
+
+          objectToUpdate.errorText = `Quantity has to be a number equal or greater than 0`;
+
+        }
+        else{
+
+          objectToUpdate.errorText = `Quantity has to be a number between 0 and ${this.props.balance}`;
+
+        }
 
       }
 
       noError = false;
 
     }
+    else{
 
-    if(propertyName === 'quantity' && newValue > this.props.balance) {
+      if(propertyName === 'quantity') {
 
-      objectToUpdate.error = true;
+        if(this.props.action === 'SELL' && newValue > this.props.balance) {
 
-      objectToUpdate.errorText = `Quantity has to be a number between 0 and ${this.props.balance}`;
+          objectToUpdate.error = true;
 
-      noError = false;
+          objectToUpdate.errorText = `Quantity has to be a number between 0 and ${this.props.balance}`;
 
-    }
+          noError = false;
 
-    if(noError) {
+        }
 
-      objectToUpdate.error = false;
+      }
 
-      objectToUpdate.errorText = '';
+      if(noError) {
+
+        objectToUpdate.error = false;
+
+        objectToUpdate.errorText = '';
+
+      }
 
     }
 
@@ -211,7 +227,7 @@ export default class LimitTradeForm extends React.Component {
         });
   };
 
-  renderButton = (text, color) => {
+  renderButton = (text, color, totalErrorText) => {
 
     const renderButton = !this.props.notRenderButton;
 
@@ -221,7 +237,7 @@ export default class LimitTradeForm extends React.Component {
 
         <Button variant="contained"
                 color={color}
-                disabled={this.state.price.error || this.state.quantity.error}
+                disabled={this.state.price.error || this.state.quantity.error || totalErrorText.length > 0}
                 className={'market-form-submit-button'}
                 onClick={this.submit}
         >
@@ -248,6 +264,8 @@ export default class LimitTradeForm extends React.Component {
 
       total,
 
+      totalErrorText = '',
+
       idPrefix = `market-limit-${this.props.action.toLowerCase()}`;
 
     if(Number.isNaN(this.state.quantity.value) || Number.isNaN(this.state.price.value)) {
@@ -263,7 +281,6 @@ export default class LimitTradeForm extends React.Component {
 
     if(this.props.action === 'BUY') {
 
-
       buttonColor = 'primary';
 
       buttonText = `Buy ${this.props.currency}`;
@@ -273,6 +290,17 @@ export default class LimitTradeForm extends React.Component {
       if(total) {
 
         totalHelperText = `Buy ${this.state.quantity.value} ${this.props.currency} für ${total} ${this.props.baseCurrency}`;
+
+        if(this.props.action === 'BUY' && total > this.props.balance) {
+
+          totalErrorText = 'Not enough balance';
+
+        }
+        else{
+
+          totalErrorText = '';
+
+        }
 
       }
 
@@ -398,15 +426,16 @@ export default class LimitTradeForm extends React.Component {
             }}
           />
 
-          <FormHelperText error={this.state.price.error || this.state.quantity.error}>
+          <FormHelperText
+            error={this.state.price.error || this.state.quantity.error || (totalErrorText.length > 0)}>
 
-            {totalHelperText}
+            {totalErrorText || totalHelperText}
 
           </FormHelperText>
 
         </FormControl>
 
-        {this.renderButton(buttonText, buttonColor)}
+        {this.renderButton(buttonText, buttonColor, totalErrorText)}
 
       </Grid>
     );

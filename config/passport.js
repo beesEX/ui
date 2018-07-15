@@ -5,7 +5,7 @@ const createRequestToBackend = require('../util/createRequestToBackend');
 const User = require('../models/User');
 
 passport.serializeUser((user, done) => {
-  done(null, user);
+  done(null, user._id);
 });
 
 passport.deserializeUser((id, done) => {
@@ -17,29 +17,44 @@ passport.deserializeUser((id, done) => {
 /**
  * Sign in using Email and Password.
  */
-passport.use(new LocalStrategy({ passReqToCallback: true, usernameField: 'email' }, (req, email, password, done) => {
+passport.use(new LocalStrategy({
+  passReqToCallback: true,
+  usernameField: 'email'
+}, (req, email, password, done) => {
   const options = {
     url: process.env.BACKEND_SIGN_IN,
-    form: { email, password }
+    form: {
+      email,
+      password
+    }
   };
   const requestToBackend = createRequestToBackend(req);
   requestToBackend.post(options, (err, httpResponse, body) => {
     try {
       const jsonBody = JSON.parse(body);
-      if (jsonBody.errors && Array.isArray(jsonBody.errors)) {
-        for (const error of body.errors) {
-          const keys = Object.keys(err);
+      if(jsonBody.errors && Array.isArray(jsonBody.errors)) {
+        for(const error of jsonBody.errors) {
+          const keys = Object.keys(error);
           const flashData = {};
-          flashData[keys[0]] = `BACKEND: ${error[keys[0]]}`;
-          return done(flashData);
+          flashData[ keys[ 0 ] ] = `BACKEND: ${error[ keys[ 0 ] ]}`;
+          req.flash(flashData);
         }
+
+        done(new Error(jsonBody.errors[ 0 ].message));
+
       }
-      else {
-        return done(null, jsonBody.user.value, { token: jsonBody.token, msg: 'Success! You are logged in.' });
+      else{
+        done(null,
+          jsonBody.user,
+          {
+            token: jsonBody.token,
+            msg: 'Success! You are logged in.'
+          }
+        );
       }
     }
-    catch (error) {
-      return done(error);
+    catch(error) {
+      done(error);
     }
   });
 }));
@@ -48,7 +63,7 @@ passport.use(new LocalStrategy({ passReqToCallback: true, usernameField: 'email'
  * Login Required middleware.
  */
 exports.isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
+  if(req.isAuthenticated()) {
     return next();
   }
   res.redirect('/login');
