@@ -4,7 +4,6 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
-const createRequestToBackend = require('../util/createRequestToBackend');
 
 const randomBytesAsync = promisify(crypto.randomBytes);
 const { logger } = global;

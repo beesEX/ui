@@ -1,6 +1,6 @@
 const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local');
-const makeRequest = require('request');
+const createRequestToBackend = require('../util/createRequestToBackend');
 
 const User = require('../models/User');
 
@@ -18,13 +18,12 @@ passport.deserializeUser((id, done) => {
  * Sign in using Email and Password.
  */
 passport.use(new LocalStrategy({ passReqToCallback: true, usernameField: 'email' }, (req, email, password, done) => {
-  let backendLoginUrl = process.env.BACKEND_URL || 'http://localhost:3001';
-  backendLoginUrl += process.env.BACKEND_SIGN_IN || '/account/signin';
   const options = {
-    url: backendLoginUrl,
+    url: process.env.BACKEND_SIGN_IN,
     form: { email, password }
   };
-  makeRequest.post(options, (err, httpResponse, body) => {
+  const requestToBackend = createRequestToBackend(req);
+  requestToBackend.post(options, (err, httpResponse, body) => {
     try {
       const jsonBody = JSON.parse(body);
       if (jsonBody.errors && Array.isArray(jsonBody.errors)) {
