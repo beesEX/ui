@@ -54,7 +54,7 @@ export default class OrderHistoryTable extends React.Component {
 
     const options = {
 
-      offset: Util.convertPageToOffset(this.state.offset, this.state.rowPerPage),
+      offset: Util.convertPageToOffset(page, this.state.rowPerPage),
 
       limit: this.state.rowPerPage
 
