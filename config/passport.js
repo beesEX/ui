@@ -5,7 +5,7 @@ const makeRequest = require('request');
 const User = require('../models/User');
 
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  done(null, user);
 });
 
 passport.deserializeUser((id, done) => {
@@ -27,7 +27,7 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, don
   makeRequest.post(options, (err, httpResponse, body) => {
     try {
       const jsonBody = JSON.parse(body);
-      console.log(jsonBody);
+      console.log('passport: ', jsonBody);
       if (jsonBody.errors && Array.isArray(jsonBody.errors)) {
         for (const error of body.errors) {
           const keys = Object.keys(err);
@@ -37,7 +37,7 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, don
         }
       }
       else {
-        return done(null, jsonBody.user, { token: jsonBody.token, msg: 'Success! You are logged in.' });
+        return done(null, jsonBody.user.value, { token: jsonBody.token, msg: 'Success! You are logged in.' });
       }
     }
     catch (error) {

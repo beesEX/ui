@@ -103,9 +103,18 @@ exports.postLogin = (req, res, next) => {
       req.flash('errors', info);
       return res.redirect('/login');
     }
-    req.session.jwtToken = info.token;
-    req.session.save();
-    res.redirect(req.session.returnTo || '/');
+    console.info( 'user', user );
+    req.logIn(user, (err) => {
+      logger.info(`initiate a login session for user with email=${user.email} by requesting JWT from backend`);
+      if(err) {
+        return next(err);
+      }
+      logger.info(info);
+      req.session.jwtToken = info.token;
+      req.session.save();
+      res.redirect(req.session.returnTo || '/');
+    });
+
   })(req, res, next);
 };
 
