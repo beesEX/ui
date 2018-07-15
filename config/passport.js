@@ -17,7 +17,7 @@ passport.deserializeUser((id, done) => {
 /**
  * Sign in using Email and Password.
  */
-passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
+passport.use(new LocalStrategy({ passReqToCallback: true, usernameField: 'email' }, (req, email, password, done) => {
   let backendLoginUrl = process.env.BACKEND_URL || 'http://localhost:3001';
   backendLoginUrl += process.env.BACKEND_SIGN_IN || '/account/signin';
   const options = {
@@ -27,7 +27,6 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, don
   makeRequest.post(options, (err, httpResponse, body) => {
     try {
       const jsonBody = JSON.parse(body);
-      console.log('passport: ', jsonBody);
       if (jsonBody.errors && Array.isArray(jsonBody.errors)) {
         for (const error of body.errors) {
           const keys = Object.keys(err);

@@ -9,58 +9,27 @@ const createRequestToBackend = require('../util/createRequestToBackend');
 const randomBytesAsync = promisify(crypto.randomBytes);
 const { logger } = global;
 
-function requestLogin(req, res, next, user, msg, redirectUrl) {
-  req.logIn(user, (err) => {
-    logger.info(`initiate a login session for user with email=${user.email} by requesting JWT from backend`);
+function requestLogin(req, res, next, redirectUrl) {
+  passport.authenticate('local', (err, user, info) => {
     if(err) {
       return next(err);
     }
-
-    const options = {
-      url: process.env.BACKEND_SIGN_IN,
-      form: {
-        email: user.email
-      }
-    };
-    const requestToBackend = createRequestToBackend(req);
-    requestToBackend.post(options, (err, httpResponse, body) => {
+    if(!user) {
+      req.flash('errors', info);
+      return res.redirect('/login');
+    }
+    req.logIn(user, (err) => {
+      logger.info(`initiate a login session for user with email=${user.email} by requesting JWT from backend`);
       if(err) {
-        logger.warn(err);
-        res.redirect(redirectUrl);
+        return next(err);
       }
-      else if(body) {
-        try {
-          const jsonBody = JSON.parse(body);
-
-          if(jsonBody.errors && Array.isArray(jsonBody.errors)) {
-            for(const error of body.errors) {
-              const keys = Object.keys(err);
-              const flashData = {};
-              flashData[ keys[ 0 ] ] = `BACKEND: ${error[ keys[ 0 ] ]}`;
-              req.flash('errors', flashData);
-            }
-          }
-          else{
-            if(msg) {
-              req.flash('success', { msg });
-            }
-
-            req.session.jwtToken = jsonBody.token;
-            req.session.save();
-          }
-
-          res.redirect(redirectUrl);
-        }
-        catch(error) {
-          return next(error);
-        }
-      }
-      else{
-        logger.warn('backend sent no data back');
-        res.redirect(redirectUrl);
-      }
+      logger.info(info);
+      req.session.jwtToken = info.token;
+      req.session.save();
+      res.redirect(redirectUrl);
     });
-  });
+
+  })(req, res, next);
 }
 
 /**
@@ -95,27 +64,7 @@ exports.postLogin = (req, res, next) => {
     return res.redirect('/login');
   }
 
-  passport.authenticate('local', (err, user, info) => {
-    if(err) {
-      return next(err);
-    }
-    if(!user) {
-      req.flash('errors', info);
-      return res.redirect('/login');
-    }
-    console.info( 'user', user );
-    req.logIn(user, (err) => {
-      logger.info(`initiate a login session for user with email=${user.email} by requesting JWT from backend`);
-      if(err) {
-        return next(err);
-      }
-      logger.info(info);
-      req.session.jwtToken = info.token;
-      req.session.save();
-      res.redirect(req.session.returnTo || '/');
-    });
-
-  })(req, res, next);
+  requestLogin(req, res, next, req.session.returnTo || '/');
 };
 
 /**
@@ -183,7 +132,7 @@ exports.postSignup = (req, res, next) => {
         return next(err);
       }
 
-      requestLogin(req, res, next, user, 'Success! You are logged in.', '/');
+      requestLogin(req, res, next, '/');
 
     });
   });
