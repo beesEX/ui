@@ -137,6 +137,61 @@ export default class OrderHistoryTable extends React.Component {
 
   };
 
+  createEditButtonClickHandler = (order, index) => {
+
+    return () => {
+
+      const updateDialog = this.props.updateOrderDialog.current;
+
+      updateDialog && updateDialog.show();
+
+      updateDialog.setOrder(order);
+
+      updateDialog.setOkClickHandler(() => {
+
+        const orderToUpdate = order;
+
+        orderToUpdate.limitPrice = updateDialog.getForm()
+          .current
+          .getCurrentPrice();
+
+        orderToUpdate.quantity = updateDialog.getForm()
+          .current
+          .getCurrentQuantity();
+
+        ajax('POST', '/order/update', orderToUpdate)
+          .then((responseText) => {
+
+            const parsedResponse = JSON.parse(responseText);
+
+            if(parsedResponse.error) {
+
+              console.log(parsedResponse.error);
+
+            }
+            else{
+
+              const originalArrayOfOrders = this.state.orders;
+
+              originalArrayOfOrders.splice(index, 1);
+
+
+              this.setState({
+
+                orders: [ parsedResponse.updatedOrder, ...originalArrayOfOrders ]
+
+              });
+
+            }
+
+          });
+
+      });
+
+    };
+
+  };
+
   render() {
 
     return (
@@ -180,7 +235,7 @@ export default class OrderHistoryTable extends React.Component {
             <TableBody>
 
               {
-                this.state.orders.map(order => {
+                this.state.orders.map((order, index) => {
 
                   return (
 
@@ -227,7 +282,8 @@ export default class OrderHistoryTable extends React.Component {
 
                           <Tooltip title={'Edit'} placement={'left'}>
 
-                            <IconButton color={'primary'}>
+                            <IconButton color={'primary'}
+                                        onClick={this.createEditButtonClickHandler(order, index)}>
 
                               <Icon>edit</Icon>
 

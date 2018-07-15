@@ -101,7 +101,7 @@ async function getOrdersFromBackEnd(req, extraOptions) {
       }
       else{
 
-        logger.error('can not connect to backend');
+        logger.error('back end sends no body back');
 
         reject(new Error('Unable to get active orders'));
       }
@@ -146,7 +146,7 @@ exports.placeOrder = (req, res) => {
 
         res.json({
 
-          errors: err
+          errors: err.message
 
         });
 
@@ -187,7 +187,7 @@ exports.getOrders = (req, res) => {
 
     res.json({
 
-      error
+      error: error.message
 
     });
 
@@ -291,9 +291,91 @@ exports.cancelOrder = (req, res) => {
 
     res.json({
 
-      error
+      error: error.message
 
     });
 
   });
+};
+
+async function _updateOrder(req) {
+
+  return new Promise((resolve, reject) => {
+
+    if(process.env.BACKEND_ORDER_UPDATE) {
+
+      if(req.body && Object.keys(req.body).length > 0) {
+
+        const requestToBackend = createRequestToBackend(req);
+
+        const options = {
+
+          url: process.env.BACKEND_ORDER_UPDATE,
+
+          form: req.body
+
+        };
+
+        requestToBackend.post(options, (error, response, body) => {
+
+          if(error) {
+
+            reject(error);
+
+          }
+          else if(body) {
+
+            resolve(JSON.parse(body));
+
+          }
+          else{
+
+            logger.error('back end sends no body back');
+
+            reject(new Error('Unable to update body'));
+
+          }
+
+        });
+
+      }
+      else{
+
+        reject(new Error('request body is empty'));
+
+      }
+
+    }
+    else{
+
+      reject(new Error('Url for updating order do not exist in process.env'));
+
+    }
+
+  });
+}
+
+exports.updateOrder = (req, res) => {
+
+  logger.debug(`update order req.body = ${JSON.stringify(req.body)}`);
+
+  _updateOrder(req)
+    .then((updatedOrder) => {
+
+      res.json({
+
+        updatedOrder
+
+      });
+
+    }, (error) => {
+
+      res.json({
+
+        error
+
+      });
+
+    });
+
 };

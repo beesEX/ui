@@ -14,6 +14,7 @@ import Grid from '@material-ui/core/Grid';
 import LimitTradeForm from './LimitTradeForm';
 import OrderHistoryTable from './OrderHistoryTable';
 import AlertDialog from '../util/AlertDialog';
+import UpdateOrderDialog from './UpdateOrderDialog';
 
 class MarketContent extends React.Component {
 
@@ -30,6 +31,8 @@ class MarketContent extends React.Component {
     this.tableRef = React.createRef();
 
     this.alertDialogRef = React.createRef();
+
+    this.updateOrderDialog = React.createRef();
 
   }
 
@@ -130,13 +133,22 @@ class MarketContent extends React.Component {
           count={window.market.count}
           rowPerPage={window.market.limit}
           alertDialog={this.alertDialogRef}
+          updateOrderDialog={this.updateOrderDialog}
         />
 
         <AlertDialog
           ref={this.alertDialogRef}
           title={'Delete'}
           message={'Do you want to delete this order'}
-          okClickAction={this.tableRef.current && this.tableRef.current.removeCurrentRow()}
+        />
+
+        <UpdateOrderDialog
+          fullWidth={true}
+          currencyBalance={10}
+          baseCurrencyBalance={100}
+          ref={this.updateOrderDialog}
+          title={'Update Order'}
+          orderHistoryTable={this.tableRef}
         />
 
 

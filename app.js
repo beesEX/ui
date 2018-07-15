@@ -163,6 +163,7 @@ app.get('/market/:symbol', passportConfig.isAuthenticated, marketController.inde
 
 app.post('/order/place', passportConfig.isAuthenticated, orderController.placeOrder);
 app.post('/order/cancel', passportConfig.isAuthenticated, orderController.cancelOrder);
+app.post('/order/update', passportConfig.isAuthenticated, orderController.updateOrder);
 app.get('/order/history', passportConfig.isAuthenticated, orderController.getOrders);
 
 /**

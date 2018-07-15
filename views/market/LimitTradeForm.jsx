@@ -17,15 +17,35 @@ import Icon from '@material-ui/core/Icon';
 import ajax from '../util/ajax';
 import Order from '../../models/Order';
 
-function getDefaultState(balance) {
+function getDefaultState(props) {
+
+  let priceValue = NaN;
+
+  let priceError = true;
+
+  let quantityValue = NaN;
+
+  let quantityError = true;
+
+  if(props.order) {
+
+    priceValue = props.order.limitPrice;
+
+    priceError = false;
+
+    quantityValue = props.order.quantity;
+
+    quantityError = false;
+
+  }
 
   return {
 
     price: {
 
-      value: NaN,
+      value: priceValue,
 
-      error: true,
+      error: priceError,
 
       helperText: 'Input a price greater or equal 0',
 
@@ -35,13 +55,13 @@ function getDefaultState(balance) {
 
     quantity: {
 
-      value: NaN,
+      value: quantityValue,
 
-      error: true,
+      error: quantityError,
 
-      helperText: `Input quantity between 0 und ${balance}`,
+      helperText: `Input quantity between 0 und ${props.balance}`,
 
-      errorText: `Input quantity between 0 und ${balance}`
+      errorText: `Input quantity between 0 und ${props.balance}`
 
     }
 
@@ -54,7 +74,7 @@ export default class LimitTradeForm extends React.Component {
 
     super(props);
 
-    this.state = getDefaultState(props.balance);
+    this.state = getDefaultState(props);
 
   }
 
@@ -62,7 +82,7 @@ export default class LimitTradeForm extends React.Component {
 
     const newState = {};
 
-    const newValue = parseInt(event.target.value);
+    const newValue = parseFloat(event.target.value);
 
     const objectToUpdate = Object.assign({}, this.state[ propertyName ]);
 
@@ -110,6 +130,18 @@ export default class LimitTradeForm extends React.Component {
     }
 
     this.setState(newState);
+
+  };
+
+  getCurrentPrice = () => {
+
+    return this.state.price.value;
+
+  };
+
+  getCurrentQuantity = () => {
+
+    return this.state.quantity.value;
 
   };
 
@@ -166,7 +198,7 @@ export default class LimitTradeForm extends React.Component {
 
             }
 
-            this.setState(getDefaultState(this.props.balance));
+            this.setState(getDefaultState(this.props));
 
           }
 
@@ -177,6 +209,31 @@ export default class LimitTradeForm extends React.Component {
           console.log(errorText);
 
         });
+  };
+
+  renderButton = (text, color) => {
+
+    const renderButton = !this.props.notRenderButton;
+
+    if(renderButton) {
+
+      return (
+
+        <Button variant="contained"
+                color={color}
+                disabled={this.state.price.error || this.state.quantity.error}
+                className={'market-form-submit-button'}
+                onClick={this.submit}
+        >
+
+          {text}
+
+        </Button>
+
+      );
+
+    }
+
   };
 
   render() {
@@ -287,6 +344,7 @@ export default class LimitTradeForm extends React.Component {
             inputProps={{
               'aria-label': 'Price',
               'min': 0,
+              'step': 0.001
             }}
           />
 
@@ -348,16 +406,7 @@ export default class LimitTradeForm extends React.Component {
 
         </FormControl>
 
-        <Button variant="contained"
-                color={buttonColor}
-                disabled={this.state.price.error || this.state.quantity.error}
-                className={'market-form-submit-button'}
-                onClick={this.submit}
-        >
-
-          {buttonText}
-
-        </Button>
+        {this.renderButton(buttonText, buttonColor)}
 
       </Grid>
     );
