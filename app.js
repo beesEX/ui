@@ -38,7 +38,7 @@ const userController = require('./controllers/user');
 const contactController = require('./controllers/contact');
 const marketController = require('./controllers/market');
 const orderController = require('./controllers/order');
-const testBackendController = require('./controllers/testBackendController');
+const orderReplayController = require('./controllers/order-replay');
 
 /**
  * API keys and Passport configuration.
@@ -149,7 +149,7 @@ app.post('/account/profile', passportConfig.isAuthenticated, userController.post
 app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
 
-app.get('/order-replay', passportConfig.isAuthenticated, testBackendController.index);
+app.get('/order-replay', passportConfig.isAuthenticated, orderReplayController.index);
 
 /**
  * market

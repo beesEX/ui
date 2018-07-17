@@ -36,6 +36,7 @@ exports.index = (req, res) => {
     data.orders = JSON.stringify(data.orders);
 
     data.limit = limit;
+    data.title = 'Market';
 
     res.render('market', data);
 
@@ -43,7 +44,7 @@ exports.index = (req, res) => {
 
     req.flash('errors', { msg: error.message });
 
-    const data = {};
+    const data = { title: 'Market' };
 
     res.render('market', data);
 
