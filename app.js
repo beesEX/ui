@@ -149,7 +149,7 @@ app.post('/account/profile', passportConfig.isAuthenticated, userController.post
 app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
 
-app.get('/backendExample', passportConfig.isAuthenticated, testBackendController.index);
+app.get('/order-replay', passportConfig.isAuthenticated, testBackendController.index);
 
 /**
  * market
