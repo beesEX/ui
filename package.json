@@ -47,7 +47,8 @@
     "react-dom": "^16.4.1",
     "request": "^2.85.0",
     "twit": "^2.2.9",
-    "validator": "^10.1.0"
+    "validator": "^10.1.0",
+    "zeromq": "^4.6.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.51",

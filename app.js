@@ -94,9 +94,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload' || req.xhr) { // ajax doesn't need csrf token, because you can't csrf with it
+  if(req.path === '/api/upload' || req.xhr) { // ajax doesn't need csrf token, because you can't csrf with it
     next();
-  } else {
+  } else{
     lusca.csrf()(req, res, next);
   }
 });
@@ -109,13 +109,13 @@ app.use((req, res, next) => {
 });
 app.use((req, res, next) => {
   // After successful login, redirect back to the intended page
-  if (!req.user &&
+  if(!req.user &&
     req.path !== '/login' &&
     req.path !== '/signup' &&
     !req.path.match(/^\/auth/) &&
     !req.path.match(/\./)) {
     req.session.returnTo = req.originalUrl;
-  } else if (req.user &&
+  } else if(req.user &&
     (req.path === '/account' || req.path.match(/^\/api/))) {
     req.session.returnTo = req.originalUrl;
   }
@@ -169,7 +169,7 @@ app.get('/order/history', passportConfig.isAuthenticated, orderController.getOrd
 /**
  * Error Handler.
  */
-if (process.env.NODE_ENV === 'development') {
+if(process.env.NODE_ENV === 'development') {
   // only use in development
   app.use(errorHandler());
 }
@@ -180,6 +180,18 @@ if (process.env.NODE_ENV === 'development') {
 app.listen(app.get('port'), () => {
   logger.info('%s App is running at http://localhost:%d in %s mode', chalk.green('✓'), app.get('port'), app.get('env'));
   logger.log('  Press CTRL-C to stop\n');
+});
+
+/**
+ * Test zeroMQ subscriber
+ */
+
+const subscribe = require('./util/zeroMQSubscriber');
+
+subscribe('world', (message) => {
+
+  logger.debug(`BOOM: ${message}`);
+
 });
 
 module.exports = app;
