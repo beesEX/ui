@@ -14,7 +14,7 @@ function requestLogin(req, res, next, redirectUrl) {
       return next(err);
     }
     if(!user) {
-      req.flash('errors', info);
+      req.flash('errors', { msg: info });
       return res.redirect('/login');
     }
     req.logIn(user, (err) => {

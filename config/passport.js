@@ -34,13 +34,16 @@ passport.use(new LocalStrategy({
       const jsonBody = JSON.parse(body);
       if(jsonBody.errors && Array.isArray(jsonBody.errors)) {
         for(const error of jsonBody.errors) {
-          const keys = Object.keys(error);
-          const flashData = {};
-          flashData[ keys[ 0 ] ] = `BACKEND: ${error[ keys[ 0 ] ]}`;
-          req.flash(flashData);
+          if(typeof error === 'string') {
+            req.flash('errors', { msg: error });
+          }
+          else{
+            const msg = error.password || error.email || error.message;
+            req.flash('errors', { msg });
+          }
         }
 
-        done(new Error(jsonBody.errors[ 0 ].message));
+        done(null, null, 'Fail! Please try again');
 
       }
       else{
