@@ -41,11 +41,22 @@ export default class OrderHistoryTable extends React.Component {
 
   push = (order) => {
 
+    let newArrayOfOrders;
+
+    if(this.state.count >= this.rowPerPage){
+
+      newArrayOfOrders = [ order, ...this.state.orders.slice(0, this.state.orders.length - 1) ];
+
+    }
+    else{
+
+      newArrayOfOrders =  [ order, ...this.state.orders];
+    }
     this.setState({
 
       count: this.state.count + 1,
 
-      orders: [ order, ...this.state.orders.slice(0, this.state.orders.length - 1) ]
+      orders: newArrayOfOrders
 
     });
   };
