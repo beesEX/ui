@@ -55,7 +55,7 @@ exports.index = (req, res) => {
 
     res.render('market', data);
 
-  })
+  });
 
 };
 
@@ -68,8 +68,8 @@ async function getAggregatedOrderBook(req) {
     const requestToBackend = createRequestToBackend(req);
 
     const url = process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK
-            .replace(':currency', req.params.currency)
-            .replace(':baseCurrency', req.params.baseCurrency);
+      .replace(':currency', req.params.currency)
+      .replace(':baseCurrency', req.params.baseCurrency);
 
     requestToBackend.get(url, (error, response, body) => {
 
@@ -101,7 +101,7 @@ async function getAggregatedOrderBook(req) {
         reject(new Error('Unable to get the aggregated order book'));
       }
 
-    })
+    });
 
   });
 }
