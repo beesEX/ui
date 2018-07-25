@@ -1,4 +1,4 @@
-beesEX-UI (UI-Server) cloned from Hackathon Starter 
+beesEX frontend server
 =======================
 
 Table of Contents
@@ -31,8 +31,6 @@ Features
 --------
 
 - **Local Authentication** using Email and Password
-- **OAuth 1.0a Authentication** via Twitter
-- **OAuth 2.0 Authentication** via Facebook, Google, GitHub, LinkedIn, Instagram
 - Flash notifications
 - MVC Project Structure
 - Node.js clusters support
@@ -66,20 +64,23 @@ Prerequisites
 screencast by Alex Ford that teaches Node and Express from scratch. Alternatively,
 here is another great tutorial for complete beginners - [Getting Started With Node.js, Express, MongoDB](http://cwbuecheler.com/web/tutorials/2013/node-express-mongo/).
 
-Getting Started - how to start beesEX UI-Server
+Getting Started - how to start beesEX frontend server
 ---------------
 
 The easiest way to get started is to clone the repository:
 
 ```bash
 # Get the latest snapshot
-git clone https://github.com/lht147/beesEX-UI beesEX-UI
+git clone https://github.com/beesEX/ui beesEX-UI
 
 # Change directory
 cd beesEX-UI
 
 # Install NPM dependencies
 npm install
+
+# webpack bundling
+npm run webpack
 
 # Then simply start your app
 npm start
@@ -156,14 +157,7 @@ List of Packages
 | nyc                             | Coverage test.                                                          |
 | nodemailer                      | Node.js library for sending emails.                                     |
 | passport                        | Simple and elegant authentication library for node.js.                  |
-| passport-facebook               | Sign-in with Facebook plugin.                                           |
-| passport-github                 | Sign-in with GitHub plugin.                                             |
-| passport-google-oauth           | Sign-in with Google plugin.                                             |
-| passport-instagram              | Sign-in with Instagram plugin.                                          |
-| passport-linkedin-oauth2        | Sign-in with LinkedIn plugin.                                           |
 | passport-local                  | Sign-in with Username and Password plugin.                              |
-| passport-openid                 | Sign-in with OpenId plugin.                                             |
-| passport-oauth                  | Allows you to set up your own OAuth 1.0a and OAuth 2.0 strategies.      |
 | pug (jade)                      | Template engine for Express.                                            |
 | request                         | Simplified HTTP request library.                                        |
 | sinon                           | Test spies, stubs and mocks for JavaScript.                             |
