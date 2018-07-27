@@ -125,7 +125,7 @@ exports.placeOrder = (req, res) => {
 
   logger.debug(`place Order ${JSON.stringify(req.body)}`);
 
-  const order = Order.fromJSOn(req.body);
+  const order = Order.fromJSON(req.body);
 
   const errors = order.validate(); // TODO check balance
 

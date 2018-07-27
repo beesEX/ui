@@ -147,7 +147,7 @@ class Order {
 
   }
 
-  static fromJSOn(json) {
+  static fromJSON(json) {
 
     return new Order(
       json.type,
