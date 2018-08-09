@@ -9,6 +9,59 @@ const createRequestToBackend = require('../util/createRequestToBackend');
 
 const {logger} = global;
 
+/**
+ * Call GET /market/aggregatedOrderBook/:currency-:baseCurrency on Backend to get the current aggregated state of the
+ * orderbook.
+ *
+ * @param req
+ * @returns {Promise<any>}
+ */
+async function getAggregatedOrderBook(req) {
+
+  logger.debug(`get aggregated order book  from back end with params: currency = ${req.params.currency} and base currency = ${req.params.baseCurrency}`);
+
+  return new Promise((resolve, reject) => {
+
+    const requestToBackend = createRequestToBackend(req);
+
+    const url = process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK
+      .replace(':currency', req.params.currency)
+      .replace(':baseCurrency', req.params.baseCurrency);
+
+    requestToBackend.get(url, (error, response, body) => {
+
+      if (error) {
+
+        reject(error);
+
+      }
+      else if (body) {
+
+        const parsedBody = JSON.parse(body);
+
+        if (parsedBody.errors && parsedBody.errors.length > 0) {
+
+          reject(new Error(parsedBody.errors[0].message));
+
+        }
+        else {
+
+          resolve(parsedBody);
+
+        }
+
+      }
+      else {
+
+        logger.error('back end sends no body back');
+
+        reject(new Error('Unable to get the aggregated order book'));
+      }
+
+    });
+  });
+}
+
 exports.index = (req, res) => {
 
   logger.debug(`Market index page with symbol ${req.params.symbol} gets accessed`);
@@ -58,50 +111,3 @@ exports.index = (req, res) => {
   });
 
 };
-
-async function getAggregatedOrderBook(req) {
-
-  logger.debug(`get aggregated order book  from back end with params: currency = ${req.params.currency} and base currency = ${req.params.baseCurrency}`);
-
-  return new Promise((resolve, reject) => {
-
-    const requestToBackend = createRequestToBackend(req);
-
-    const url = process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK
-      .replace(':currency', req.params.currency)
-      .replace(':baseCurrency', req.params.baseCurrency);
-
-    requestToBackend.get(url, (error, response, body) => {
-
-      if (error) {
-
-        reject(error);
-
-      }
-      else if (body) {
-
-        const parsedBody = JSON.parse(body);
-
-        if (parsedBody.errors && parsedBody.errors.length > 0) {
-
-          reject(new Error(parsedBody.errors[0].message));
-
-        }
-        else {
-
-          resolve(parsedBody);
-
-        }
-
-      }
-      else {
-
-        logger.error('back end sends no body back');
-
-        reject(new Error('Unable to get the aggregated order book'));
-      }
-
-    });
-
-  });
-}
