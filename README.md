@@ -7,7 +7,6 @@ Table of Contents
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
-- [Obtaining API Keys](#obtaining-api-keys)
 - [Project Structure](#project-structure)
 - [List of Packages](#list-of-packages)
 - [Useful Tools and Resources](#useful-tools-and-resources)
@@ -21,7 +20,6 @@ Table of Contents
     - [ES6](#-es6-cheatsheet)
     - [JavaScript Date](#-javascript-date-cheatsheet)
     - [Mongoose Cheatsheet](#mongoose-cheatsheet)
-- [Deployment](#deployment)
 - [Docker](#docker)
 - [Changelog](#changelog)
 - [Contributing](#contributing)
@@ -29,7 +27,12 @@ Table of Contents
 
 Features
 --------
-
+- **Market**
+ - live market ticket, data and indicators
+ - live order book
+- **Order Management**
+ - live trading capabilities: place new order, update open orders
+ - user's order history
 - **Local Authentication** using Email and Password
 - Flash notifications
 - MVC Project Structure
@@ -43,7 +46,6 @@ Features
  - Change Password
  - Forgot Password
  - Reset Password
- - Link multiple OAuth strategies to one account
  - Delete Account
 - CSRF protection
 
@@ -129,7 +131,6 @@ List of Packages
 
 | Package                         | Description                                                             |
 | ------------------------------- | ------------------------------------------------------------------------|
-| @octokit/rest                   | GitHub API library.                                                     |
 | bcrypt-nodejs                   | Library for hashing and salting user passwords.                         |
 | body-parser                     | Node.js body parsing middleware.                                        |
 | chai                            | BDD/TDD assertion library.                                              |
@@ -150,7 +151,6 @@ List of Packages
 | lusca                           | CSRF middleware.                                                        |
 | mocha                           | Test framework.                                                         |
 | mongoose                        | MongoDB ODM.                                                            |
-| morgan                          | HTTP request logger middleware for node.js.                             |
 | multer                          | Node.js middleware for handling `multipart/form-data`.                  |
 | node-sass                       | Node.js bindings to libsass.                                            |
 | node-sass-middleware            | Sass middleware compiler.                                               |
@@ -164,6 +164,7 @@ List of Packages
 | sinon-mongoose                  | Extend Sinon stubs for Mongoose methods to test chained methods easily. |
 | supertest                       | HTTP assertion library.                                                 |
 | validator                       | Used in conjunction with express-validator in **controllers/api.js**.   |
+| @material-ui/core               | React component lib with material design   |
 
 Useful Tools and Resources
 --------------------------
@@ -984,228 +985,6 @@ docker-compose up web
 ```
 
 To view the app, find your docker ip address + port 8080 ( this will typically be http://localhost:8080/ ).  To use a port other than 8080, you would need to modify the port in app.js, Dockerfile and docker-compose.yml.
-
-
-Deployment
-----------
-
-Once you are ready to deploy your app, you will need to create an account with
-a cloud platform to host it. These are not the only choices, but they are my top
-picks. From my experience, **Heroku** is the easiest to get started with, it will
-automatically restart your Node.js process when it crashes, zero-downtime
-deployments and custom domain support on free accounts. Additionally, you can
-create an account with **mLab** and then pick one of the *4* providers below.
-Again, there are plenty of other choices and you are not limited to just the ones
-listed below.
-
-### 1-Step Deployment with Heroku
-
-<img src="https://upload.wikimedia.org/wikipedia/en/a/a9/Heroku_logo.png" width="200">
-
-- Download and install [Heroku Toolbelt](https://toolbelt.heroku.com/)
-- In terminal, run `heroku login` and enter your Heroku credentials
-- From *your app* directory run `heroku create`
-- Run `heroku addons:create mongolab`.  This will set up the mLab add-on and configure the `MONGODB_URI` environment variable in your Heroku app for you.
-- Lastly, do `git push heroku master`.  Done!
-
-**Note:** To install Heroku add-ons your account must be verified.
-
----
-
-<img src="https://mlab.com/company/img/branding/mLab-logo-onlight.svg" width="200">
-
-- Open [mlab.com](https://mlab.com) website
-- Click the yellow **Sign up** button
-- Fill in your user information then hit **Create account**
-- From the dashboard, click on **:zap:Create new** button
-- Select **any** cloud provider (I usually go with AWS)
-- Under *Plan* click on **Single-node (development)** tab and select **Sandbox** (it's free)
- - *Leave MongoDB version as is - `2.4.x`*
-- Enter *Database name** for your web app
-- Then click on **:zap:Create new MongoDB deployment** button
-- Now, to access your database you need to create a DB user
-- Click to the recently created database
-- You should see the following message:
- - *A database user is required to connect to this database.* **Click here** *to create a new one.*
-- Click the link and fill in **DB Username** and **DB Password** fields
-- Finally, in `.env` instead of `mongodb://localhost:27017/test`, use the following URI with your credentials:
- - `db: 'mongodb://USERNAME:PASSWORD@ds027479.mongolab.com:27479/DATABASE_NAME'`
-
-**Note:** As an alternative to mLab, there is also [Compose](https://www.compose.io/).
-
-<img src="http://www.opencloudconf.com/images/openshift_logo.png" width="200">
-**NOTE** *These instructions might be out of date due to changes in OpenShift. Heroku is currently a good free alternative.  If you the new process, please feel free to help us update this page*
-
-- First, install this Ruby gem: `sudo gem install rhc` :gem:
-- Run `rhc login` and enter your OpenShift credentials
-- From your app directory run `rhc app create MyApp nodejs-0.10`
- - **Note:** *MyApp* is the name of your app (no spaces)
-- Once that is done, you will be provided with **URL**, **SSH** and **Git Remote** links
-- Visit provided **URL** and you should see the *Welcome to your Node.js application on OpenShift* page
-- Copy and and paste **Git Remote** into `git remote add openshift YOUR_GIT_REMOTE`
-- Before you push your app, you need to do a few modifications to your code
-
-Add these two lines to `app.js`, just place them anywhere before `app.listen()`:
-```js
-var IP_ADDRESS = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
-var PORT = process.env.OPENSHIFT_NODEJS_PORT || 8080;
-```
-
-Then change `app.listen()` to:
-```js
-app.listen(PORT, IP_ADDRESS,() => {
-  console.log(`Express server listening on port ${PORT} in ${app.settings.env} mode`);
-});
-```
-Add this to `package.json`, after *name* and *version*. This is necessary because, by default, OpenShift looks for `server.js` file. And by specifying `supervisor app.js` it will automatically restart the server when node.js process crashes.
-
-```js
-"main": "app.js",
-"scripts": {
-  "start": "supervisor app.js"
-},
-```
-
-- Finally, you can now push your code to OpenShift by running `git push -f openshift master`
- - **Note:** The first time you run this command, you have to pass `-f` (force) flag because OpenShift creates a dummy server with the welcome page when you create a new Node.js app. Passing `-f` flag will override everything with your *Hackathon Starter* project repository. **Do not** run `git pull` as it will create unnecessary merge conflicts.
-- And you are done!
-
-<img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Windows_Azure_logo.png" width="200">
-**NOTE** *Beyound the initial 12 month trial of Azure, the platform does not seem to offer a free tier for hosting NodeJS apps.  If you are looking for a free tier service to host your app, Heroku might be a better choice at this point*
-
-- Login to [Windows Azure Management Portal](https://manage.windowsazure.com/)
-- Click the **+ NEW** button on the bottom left of the portal
-- Click **COMPUTE**, then **WEB APP**, then **QUICK CREATE**
-- Enter a name for **URL** and select the datacenter **REGION** for your web site
-- Click on **CREATE WEB APP** button
-- Once the web site status changes to *Running*, click on the name of the web site to access the Dashboard
-- At the bottom right of the Quickstart page, select **Set up a deployment from source control**
-- Select **Local Git repository** from the list, and then click the arrow
-- To enable Git publishing, Azure will ask you to create a user name and password
-- Once the Git repository is ready, you will be presented with a **GIT URL**
-- Inside your *Hackathon Starter* directory, run `git remote add azure [Azure Git URL]`
-- To push your changes simply run `git push azure master`
- - **Note:** *You will be prompted for the password you created earlier*
-- On **Deployments** tab of your Windows Azure Web App, you will see the deployment history
-
-------
-
-
-# IBM Bluemix Cloud Platform
-**NOTE** *At this point it appears that Bluemix's free tier to host NodeJS apps is limited to 30 days.  If you are looking for a free tier service to host your app, Heroku might be a better choice at this point*
-
-1. Create a Bluemix Account
-
-    [Sign up](https://console.ng.bluemix.net/registration/?target=%2Fdashboard%2Fapps) for Bluemix, or use an existing account.  
-
-1. Download and install the [Cloud Foundry CLI](https://github.com/cloudfoundry/cli) to push your applications to Bluemix.
-
-1. Create a `manifest.yml` file in the root of your application.
-  ```
-  applications:
-  - name:      <your-app-name>
-    host:      <your-app-host>
-    memory:    128M
-    services:
-    - myMongo-db-name
-  ```
-
-  The host you use will determinate your application url initially, e.g. `<host>.mybluemix.net`.  
-  The service name 'myMongo-db-name' is a declaration of your MongoDB service.  If you are using other services like Watson for example, then you would declare them the same way.
-
-1. Connect and login to Bluemix via the Cloud-foundry CLI
-  ```
-  $ cf login -a https://api.ng.bluemix.net
-  ```
-
-1. Create a [MongoDB service](https://www.ng.bluemix.net/docs/#services/MongoDB/index.html#MongoDB)
-  ```
-  $ cf create-service mongodb 100 [your-service-name]
-  ```
-  **Note:** this is a free and experiment verion of MongoDB instance.  
-  Use the MongoDB by Compose instance for production applications:
-  ```
-  $ cf create-service compose-for-mongodb Standard [your-service-name]'
-  ```
-
-
-1. Push the application
-
-    ```
-    $ cf push
-    ```
-    ```
-    $ cf env <your-app-name >
-    (To view the *environment variables* created for your application)
-
-    ```
-
-**Done**, now go to the staging domain(`<host>.mybluemix.net`.) and see your app running.  
-
-[Cloud Foundry Commands](https://console.ng.bluemix.net/docs/cli/reference/bluemix_cli/index.html)  
-[More Bluemix samples](https://ibm-bluemix.github.io/)  
-[Simple ToDo app in a programming language of your choice](https://github.com/IBM-Bluemix/todo-apps)  
-
-
-
-## IBM Watson
-Be sure to check out the full list of Watson services to forwarder enhance your application functionality with a little effort. Watson services are easy to get going, it is simply an RESTful API call. Here is an example of a [Watson Toner Analyzer](https://tone-analyzer-demo.mybluemix.net/) to understand the emotional context of a piece of text that you send to Watson.
-
-
-
-### Watson catalog of services      
-
-**<img src="https://wbi.mybluemix.net/icons/conversation.svg?version=2" width="25"> [Conversation](https://www.ibm.com/watson/services/conversation/)** - 	Quickly build and deploy chatbots and virtual agents across a variety of channels, including mobile devices, messaging platforms, and even robots.  
-
-**<img src="https://wbi.mybluemix.net/icons/discovery.svg" width="25"> [Discovery](https://www.ibm.com/watson/services/discovery/)** - Unlock hidden value in data to find answers, monitor trends and surface patterns with the world’s most advanced cloud-native insight engine.
-
-**<img src="https://wbi.mybluemix.net/icons/language-translator.svg?version=4" width="20" width="25"> [Language Translator](https://www.ibm.com/watson/services/language-translator/)** - Translate text from one language to another.
-
-**<img src="https://wbi.mybluemix.net/icons/natural-language-classifier.svg?version=2" width="25"> [Natural Language Classifier](https://www.ibm.com/watson/services/natural-language-classifier/)** - Interpret and classify natural language with confidence.  
-
-**<img src="https://wbi.mybluemix.net/icons/natural-language-understanding.svg?version=2" width="25"> [Natural Language Understanding](https://www.ibm.com/watson/services/natural-language-understanding/)** - Analyze text to extract meta-data from content such as concepts, entities, keywords and more.
-
-**<img src="https://wbi.mybluemix.net/icons/personality-insights.svg?version=2" width="25"> [Personality Insights](https://www.ibm.com/watson/services/personality-insights/)** - Predict personality characteristics, needs and values through written text.
-
-**<img src="https://wbi.mybluemix.net/icons/speech-to-text.svg?version=2" width="25"> [Speech to Text](https://www.ibm.com/watson/services/speech-to-text/)** - Convert audio and voice into written text for quick understanding of content.
-
-**<img src="https://wbi.mybluemix.net/icons/text-to-speech.svg?version=2" width="25"> [Text to Speech](https://www.ibm.com/watson/services/text-to-speech/)** - Convert written text into natural sounding audio in a variety of languages and voices.  
-
-**<img src="https://wbi.mybluemix.net/icons/tone-analyzer.svg?version=2" width="25"> [Tone Analyzer](https://www.ibm.com/watson/services/tone-analyzer/)** - Understand emotions, social tendencies and perceived writing style. 
-
-**<img src="https://kpprod1.alchemyapi.com/images/vis_rec.svg" width="25"> [Visual Recognition](https://www.ibm.com/watson/services/visual-recognition/)** - Tag, classify and search visual content using machine learning.
-
-
-
-[Click here](https://www.ibm.com/watson/developercloud/services-catalog.html) for live demos of each Watson service.
-
-
----
-
-<img src="https://avatars2.githubusercontent.com/u/2810941?v=3&s=64" width="64" align="left">
-
-# Google Cloud Platform
-
-- [Download and install Node.js](https://nodejs.org/)
-- [Select or create](https://console.cloud.google.com/project) a Google Cloud Platform Console project
-- [Enable billing](https://support.google.com/cloud/answer/6293499#enable-billing) for your project (there's a $300 free trial)
-- Install and initialize the [Google Cloud SDK](https://cloud.google.com/sdk/docs/quickstarts)
-- Create an `app.yaml` file at the root of your `hackathon-starter` folder with the following contents:
-
-    ```yaml
-    runtime: nodejs
-    vm: true
-    manual_scaling:
-      instances: 1
-    ```
-- Make sure you've set `MONGODB_URI` in `.env.example`
-- Run the following command to deploy the `hackathon-starter` app:
-
-    ```bash
-    gcloud app deploy
-    ```
-- [Monitor your deployed app](https://console.cloud.google.com/appengine) in the Cloud Console
-- [View the logs](https://console.cloud.google.com/logs/viewer) for your app in the Cloud Console
 
 Changelog
 ---------
