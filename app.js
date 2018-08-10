@@ -21,14 +21,16 @@ const sass = require('node-sass-middleware');
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
-dotenv.load({ path: '.env.example' });
+dotenv.load({path: '.env.example'});
 
 /**
  * Configure a global logger
  */
 global.logger = require('./config/logger');
 
-const { logger } = global;
+const {logger} = global;
+
+const WebSocketServer = require('./util/WebsocketServer');
 
 /**
  * Controllers (route handlers).
@@ -78,13 +80,13 @@ app.use(sass({
 // app.use(logger('dev'));
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(expressValidator());
 app.use(session({
   resave: true,
   saveUninitialized: true,
   secret: process.env.SESSION_SECRET,
-  cookie: { maxAge: 1209600000 }, // two weeks in milliseconds
+  cookie: {maxAge: 1209600000}, // two weeks in milliseconds
   store: new MongoStore({
     url: process.env.MONGODB_URI,
     autoReconnect: true,
@@ -96,7 +98,8 @@ app.use(flash());
 app.use((req, res, next) => {
   if(req.path === '/api/upload' || req.xhr) { // ajax doesn't need csrf token, because you can't csrf with it
     next();
-  } else{
+  }
+  else{
     lusca.csrf()(req, res, next);
   }
 });
@@ -110,18 +113,19 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   // After successful login, redirect back to the intended page
   if(!req.user &&
-    req.path !== '/login' &&
-    req.path !== '/signup' &&
-    !req.path.match(/^\/auth/) &&
-    !req.path.match(/\./)) {
+          req.path !== '/login' &&
+          req.path !== '/signup' &&
+          !req.path.match(/^\/auth/) &&
+          !req.path.match(/\./)) {
     req.session.returnTo = req.originalUrl;
-  } else if(req.user &&
-    (req.path === '/account' || req.path.match(/^\/api/))) {
+  }
+  else if(req.user &&
+          (req.path === '/account' || req.path.match(/^\/api/))) {
     req.session.returnTo = req.originalUrl;
   }
   next();
 });
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
+app.use(express.static(path.join(__dirname, 'public'), {maxAge: 31557600000}));
 
 /**
  * public routes, no authentication required
@@ -173,6 +177,39 @@ if(process.env.NODE_ENV === 'development') {
   // only use in development
   app.use(errorHandler());
 }
+
+/**
+ * Test websocket server
+ */
+
+app.get('/testWebSocket', (req, res) => {
+
+  res.render('testWebSocket', {title: 'Test WebSocket'});
+
+});
+
+const webSocketServer = new WebSocketServer(process.env.WEB_SOCKET_SERVER_PORT);
+
+
+webSocketServer.start().then(() => {
+
+  let i = 0;
+
+  const setIntervalAction = setInterval(() => {
+
+    webSocketServer.broadcast(`Hello World ${i++}`);
+
+  }, 1000);
+
+  setTimeout(() => {
+
+    clearInterval(setIntervalAction);
+
+    webSocketServer.stop();
+
+  }, 100 * 1000); // 100s
+
+});
 
 /**
  * Start Express server.

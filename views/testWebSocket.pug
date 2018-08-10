@@ -1,0 +1,16 @@
+extends layout
+
+block content
+    div#messageContainer
+    script.
+
+        const ws = new WebSocket('ws://localhost:8081/market/helloworld');
+
+        ws.onmessage = function (event) {
+            const msg = event.data;
+            console.log(JSON.stringify(msg, null, 2));
+            const div = document.createElement('div');
+            div.innerHTML = msg;
+            document.getElementById('messageContainer').appendChild(div);
+            console.log(JSON.stringify('boom'));
+        };
