@@ -154,6 +154,7 @@ app.post('/account/password', passportConfig.isAuthenticated, userController.pos
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
 
 app.get('/order-replay', passportConfig.isAuthenticated, orderReplayController.index);
+app.get('/finance/status/:currency', passportConfig.isAuthenticated, orderReplayController.financeStatus);
 
 /**
  * market
