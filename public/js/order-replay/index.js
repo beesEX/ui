@@ -63,3 +63,10 @@ function processOrderPlacedEvent(orderEvent) {
 function closeWS() {
   geminiWS.close();
 }
+
+/*$(document).ready(() => {
+  const currency = $('#currency').value();
+  $.get(`/finance/status/${currency}`, (financeStatus) => {
+    console.log(JSON.stringify(financeStatus, null, 2));
+  });
+});*/

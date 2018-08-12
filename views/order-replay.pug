@@ -2,7 +2,7 @@ extends layout
 
 block content
     .row
-        .col-md-6
+        .col-md-5
             div
                 input#csrf(type='hidden', name='_csrf', value=_csrf)
                 select#side
@@ -12,6 +12,16 @@ block content
                     option(value="wss://api.gemini.com/v1/marketdata/btcusd") wss://api.gemini.com/v1/marketdata/btcusd
                 button#controlBtn(onclick="toogleConnection()") connect
             ul#orderList
-        .col-md-6
+        .col-md-7
             div
+                label Currency:
+                select#currency
+                    option(value="BTC") BTC
+                    option(value="USDT") USDT
+                span#balance
+                span#available
+                label Deposit:
+                input#amount
+                button#depositBtn Deposit
+            dev#txList
     script(src="/js/order-replay/index.js")
