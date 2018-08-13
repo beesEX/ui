@@ -18,10 +18,11 @@ block content
                 select#currency
                     option(value="BTC") BTC
                     option(value="USDT") USDT
+                button#loadStatusBtn(onclick="loadFinanceStatus()") Refresh
                 span#balance
                 span#available
                 label Deposit:
                 input#amount
-                button#depositBtn Deposit
+                button#depositBtn(onclick="depositFund()") Deposit
             dev#txList
     script(src="/js/order-replay/index.js")
