@@ -5,11 +5,19 @@
 
 const request = require('request');
 
-const { logger } = global;
+const http = require('http');
+
+const {logger} = global;
 
 const backendBasedUrl = process.env.BACKEND_URL || 'http://localhost:3001';
 
 function createRequest(req) {
+
+  if(!(req instanceof http.IncomingMessage)) {
+
+    throw new Error(`invalid request object: ${req}`);
+
+  }
 
   if(!req.session) {
 

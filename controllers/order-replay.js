@@ -1,4 +1,4 @@
-const { logger } = global;
+const {logger} = global;
 
 const createRequestToBackend = require('../util/createRequestToBackend');
 
@@ -29,18 +29,17 @@ async function getFinanceStatus(req, currency) {
 }
 
 exports.index = (req, res) => {
-  res.render('order-replay', { title: 'Order-Replay' });
+  res.render('order-replay', {title: 'Order-Replay'});
 };
 
 // GET /finance/status/:currency
 exports.financeStatus = (req, res) => {
   logger.info(`order-replay.js financeStatus(): retrieves finance status of ${req.params.currency} ...`);
 
-  getFinanceStatus(req.params.currency)
-    .then((financeStatus) => {
-      logger.info(`order-replay.js financeStatus(): finance status: ${JSON.stringify(financeStatus, null, 2)}`);
-      res.json(financeStatus);
-    }, (error) => {
-      res.json(error);
-    });
+  getFinanceStatus(req, req.params.currency).then((financeStatus) => {
+    logger.info(`order-replay.js financeStatus(): finance status: ${JSON.stringify(financeStatus, null, 2)}`);
+    res.json(financeStatus);
+  }, (error) => {
+    res.json({error: error.message});
+  });
 };
