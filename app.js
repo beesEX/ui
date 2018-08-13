@@ -155,7 +155,7 @@ app.post('/account/delete', passportConfig.isAuthenticated, userController.postD
 
 app.get('/order-replay', passportConfig.isAuthenticated, orderReplayController.index);
 app.get('/finance/status/:currency', passportConfig.isAuthenticated, orderReplayController.financeStatus);
-app.get('/finance/deposit/:currency', passportConfig.isAuthenticated, orderReplayController.depositFund);
+app.post('/finance/deposit/:currency', passportConfig.isAuthenticated, orderReplayController.depositFund);
 
 /**
  * market

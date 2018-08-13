@@ -2,7 +2,7 @@ extends layout
 
 block content
     .row
-        .col-md-5
+        .col-lg-5
             div
                 input#csrf(type='hidden', name='_csrf', value=_csrf)
                 select#side
@@ -12,17 +12,23 @@ block content
                     option(value="wss://api.gemini.com/v1/marketdata/btcusd") wss://api.gemini.com/v1/marketdata/btcusd
                 button#controlBtn(onclick="toogleConnection()") connect
             ul#orderList
-        .col-md-7
-            div
-                label Currency:
-                select#currency
-                    option(value="BTC") BTC
-                    option(value="USDT") USDT
-                button#loadStatusBtn(onclick="loadFinanceStatus()") Refresh
-                span#balance
-                span#available
-                label Deposit:
-                input#amount
-                button#depositBtn(onclick="depositFund()") Deposit
+        .col-lg-7
+            div.clearfix
+                div.float-left
+                    label Currency:
+                    select#currency
+                        option(value="BTC") BTC
+                        option(value="USDT") USDT
+                    button#loadStatusBtn(onclick="loadFinanceStatus()") Refresh
+                dev.float-left(style="margin-right:10px;")
+                    label Balance:
+                    span#balance
+                dev.float-left
+                    label Available:
+                    span#available
+                dev.float-right
+                    label Deposit:
+                    input#amount(style="width:100px;")
+                    button#depositBtn(onclick="depositFund()") Deposit
             dev#txList
     script(src="/js/order-replay/index.js")

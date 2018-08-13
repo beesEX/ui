@@ -53,7 +53,7 @@ async function depositFund(req, currency) {
     };
 
     const reqToBackend = createRequestToBackend(req);
-    reqToBackend.get(options, (error, response, body) => {
+    reqToBackend.post(options, (error, response, body) => {
       if(error) {
         reject(error);
       }

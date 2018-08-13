@@ -63,6 +63,8 @@ function closeWS() {
 }
 
 function loadFinanceStatus() {
+  $('#amount').val('');
+
   const currency = $('select#currency option:checked').val();
   $.getJSON(`/finance/status/${currency}`, (financeStatus) => {
     console.log(JSON.stringify(financeStatus, null, 2));
@@ -73,10 +75,11 @@ function loadFinanceStatus() {
     $('#txList').empty();
 
     const txLEList = [];
-    $.each(financeStatus.txList, (tx) => {
-      txLEList.push(`<li>${JSON.stringify(tx)}</li>`);
+    txLEList.push('<tr><th>Nr.</th><th style="padding-right: 20px">Type</th><th>Amount</th><th>CreatedAt</th></tr>');
+    $.each(financeStatus.txList, (index, tx) => {
+      txLEList.push(`<tr><td>${index}</td><td style="padding-right: 20px">${tx.type}</td><td>${tx.amount}</td><td>${tx.createdAt}</td></tr>`);
     });
-    $('<ul/>', {
+    $('<table/>', {
       html: txLEList.join('')
     }).appendTo('#txList');
   });
@@ -87,9 +90,15 @@ function depositFund() {
   const amount = $('#amount').val();
 
   const xmlhttp = new XMLHttpRequest();
-  xmlhttp.open('POST', `/finance/deposit/${currency}`);
+  xmlhttp.open('POST', `/finance/deposit/${currency}`, true);
   xmlhttp.setRequestHeader('Content-Type', 'application/json');
   xmlhttp.setRequestHeader('x-csrf-token', csrfToken);
+  xmlhttp.onreadystatechange = function () {
+    if(xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      console.log(xmlhttp.responseText);
+      loadFinanceStatus();
+    }
+  };
   xmlhttp.send(JSON.stringify({ amount }));
 }
 
