@@ -48,7 +48,7 @@ function prepair(options) {
  * For further options refer to https://github.com/request/request#requestoptions-callback
  *
  * @param options
- * @return result object of the call
+ * @return result object of the call if success, otherwise the error object
  */
 module.exports.get = (options) => {
   prepair(options);
@@ -63,6 +63,7 @@ module.exports.get = (options) => {
     })
     .catch((err) => { // simple default error handling
       logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(err)}`);
+      return err;
     });
 };
 
@@ -77,7 +78,7 @@ module.exports.get = (options) => {
  * For further options refer to https://github.com/request/request#requestoptions-callback
  *
  * @param options
- * @return result object of the call
+ * @return result object of the call if success, otherwise the error object
  */
 module.exports.post = (options) => {
   prepair(options);
@@ -94,5 +95,6 @@ module.exports.post = (options) => {
     })
     .catch((err) => { // simple default error handling
       logger.info(`callBE.js: backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(err)}`);
+      return err;
     });
 };
