@@ -19,7 +19,7 @@ import Icon from '@material-ui/core/Icon';
 import Grid from '@material-ui/core/Grid';
 import Tooltip from '@material-ui/core/Tooltip';
 
-export default class OrderHistoryTable extends React.Component {
+export default class OrderHistoryTable extends React.Component{
 
   constructor(props) {
 
@@ -43,14 +43,14 @@ export default class OrderHistoryTable extends React.Component {
 
     let newArrayOfOrders;
 
-    if(this.state.count >= this.rowPerPage){
+    if(this.state.count >= this.rowPerPage) {
 
       newArrayOfOrders = [ order, ...this.state.orders.slice(0, this.state.orders.length - 1) ];
 
     }
     else{
 
-      newArrayOfOrders =  [ order, ...this.state.orders];
+      newArrayOfOrders = [ order, ...this.state.orders ];
     }
     this.setState({
 
@@ -67,35 +67,38 @@ export default class OrderHistoryTable extends React.Component {
 
       offset: Util.convertPageToOffset(page, this.state.rowPerPage),
 
-      limit: this.state.rowPerPage
+      limit: this.state.rowPerPage,
+
+      currency: this.props.currency,
+
+      baseCurrency: this.props.baseCurrency
 
     };
 
-    ajax('GET', '/order/history', options)
-      .then((responseText) => {
+    ajax('GET', '/order/history', options).then((responseText) => {
 
-        const data = JSON.parse(responseText);
+      const data = JSON.parse(responseText);
 
-        if(data.error) {
+      if(data.error) {
 
-          console.error(data.error);
+        console.error(data.error);
 
-        }
-        else{
+      }
+      else{
 
-          this.setState({
+        this.setState({
 
-            orders: data.orders,
+          orders: data.orders,
 
-            count: data.count,
+          count: data.count,
 
-            page: page
+          page: page
 
-          });
+        });
 
-        }
+      }
 
-      });
+    });
   };
 
   createDeleteButtonClickHandler = (order) => {
@@ -119,35 +122,38 @@ export default class OrderHistoryTable extends React.Component {
 
         offset: Util.convertPageToOffset(page, this.state.rowPerPage),
 
-        limit: this.state.rowPerPage
+        limit: this.state.rowPerPage,
+
+        currency: this.props.currency,
+
+        baseCurrency: this.props.baseCurrency
 
       };
 
       alertDialog.setOkClickHandler(() => {
 
-        ajax('POST', '/order/cancel', dataToSent)
-          .then((responseText) => {
+        ajax('POST', '/order/cancel', dataToSent).then((responseText) => {
 
-            const parsedResponse = JSON.parse(responseText);
+          const parsedResponse = JSON.parse(responseText);
 
-            if(parsedResponse.error) {
+          if(parsedResponse.error) {
 
-              console.log(parsedResponse.error);
+            console.log(parsedResponse.error);
 
-            }
-            else{
+          }
+          else{
 
-              this.setState({
+            this.setState({
 
-                orders: parsedResponse.orders,
+              orders: parsedResponse.orders,
 
-                count: parsedResponse.count,
+              count: parsedResponse.count,
 
-              });
+            });
 
-            }
+          }
 
-          });
+        });
 
       });
 
@@ -169,49 +175,44 @@ export default class OrderHistoryTable extends React.Component {
 
         const orderToUpdate = order;
 
-        orderToUpdate.limitPrice = updateDialog.getForm()
-          .current
-          .getCurrentPrice();
+        orderToUpdate.limitPrice = updateDialog.getForm().current.getCurrentPrice();
 
-        orderToUpdate.quantity = updateDialog.getForm()
-          .current
-          .getCurrentQuantity();
+        orderToUpdate.quantity = updateDialog.getForm().current.getCurrentQuantity();
 
-        ajax('POST', '/order/update', orderToUpdate)
-          .then((responseText) => {
+        ajax('POST', '/order/update', orderToUpdate).then((responseText) => {
 
-            const parsedResponse = JSON.parse(responseText);
+          const parsedResponse = JSON.parse(responseText);
 
-            if(parsedResponse.error) {
+          if(parsedResponse.error) {
 
-              console.log(parsedResponse.error);
+            console.log(parsedResponse.error);
+
+          }
+          else{
+
+            if(this.state.page > 0) {
+
+              this.handleChangePage(null, this.state.page);
 
             }
             else{
 
-              if(this.state.page > 0) {
+              const originalArrayOfOrders = this.state.orders;
 
-                this.handleChangePage(null, this.state.page);
+              originalArrayOfOrders.splice(index, 1);
 
-              }
-              else{
+              this.setState({
 
-                const originalArrayOfOrders = this.state.orders;
+                orders: [ parsedResponse.updatedOrder, ...originalArrayOfOrders ]
 
-                originalArrayOfOrders.splice(index, 1);
-
-                this.setState({
-
-                  orders: [ parsedResponse.updatedOrder, ...originalArrayOfOrders ]
-
-                });
-
-              }
-
+              });
 
             }
 
-          });
+
+          }
+
+        });
 
       });
 
@@ -223,133 +224,133 @@ export default class OrderHistoryTable extends React.Component {
 
     return (
 
-      <Paper>
+            <Paper>
 
-        <div className={'order-history-table-wrapper'}>
+              <div className={'order-history-table-wrapper'}>
 
-          <Table>
+                <Table>
 
-            <TableHead>
+                  <TableHead>
 
-              <TableRow>
+                    <TableRow>
 
-                <TableCell padding={'dense'}>Type</TableCell>
+                      <TableCell padding={'dense'}>Type</TableCell>
 
-                <TableCell padding={'dense'}>Side</TableCell>
+                      <TableCell padding={'dense'}>Side</TableCell>
 
-                <TableCell padding={'dense'}>Currency</TableCell>
+                      <TableCell padding={'dense'}>Currency</TableCell>
 
-                <TableCell padding={'dense'}>Base Currency</TableCell>
+                      <TableCell padding={'dense'}>Base Currency</TableCell>
 
-                <TableCell padding={'dense'}>Limit</TableCell>
+                      <TableCell padding={'dense'}>Limit</TableCell>
 
-                <TableCell padding={'dense'}>Quantity</TableCell>
+                      <TableCell padding={'dense'}>Quantity</TableCell>
 
-                <TableCell padding={'dense'}>Filled</TableCell>
+                      <TableCell padding={'dense'}>Filled</TableCell>
 
-                <TableCell padding={'dense'}>Status</TableCell>
+                      <TableCell padding={'dense'}>Status</TableCell>
 
-                <TableCell>Placed At</TableCell>
+                      <TableCell>Placed At</TableCell>
 
-                <TableCell>Updated At</TableCell>
+                      <TableCell>Updated At</TableCell>
 
-                <TableCell>Actions</TableCell>
-
-              </TableRow>
-
-            </TableHead>
-
-            <TableBody>
-
-              {
-                this.state.orders.map((order, index) => {
-
-                  return (
-
-                    <TableRow key={order._id}>
-
-                      <TableCell padding={'dense'}>{order.type}</TableCell>
-
-                      <TableCell padding={'dense'}>{order.side}</TableCell>
-
-                      <TableCell padding={'dense'}>{order.currency}</TableCell>
-
-                      <TableCell padding={'dense'}>{order.baseCurrency}</TableCell>
-
-                      <TableCell padding={'dense'}>{order.limitPrice}</TableCell>
-
-                      <TableCell padding={'dense'}>{order.quantity}</TableCell>
-
-                      <TableCell padding={'dense'}>{order.filledQuantity}</TableCell>
-
-                      <TableCell padding={'dense'}>{order.status}</TableCell>
-
-                      <TableCell padding={'dense'}>
-
-                        {Util.formatDateToUTC(new Date(order.createdAt))}
-
-                      </TableCell>
-
-                      <TableCell>{Util.formatDateToUTC(new Date(order.lastUpdatedAt))}</TableCell>
-
-                      <TableCell>
-
-                        <Grid container={true}>
-
-                          <Tooltip title={'Delete'} placement={'left'}>
-
-                            <IconButton color={'secondary'}
-                                        onClick={this.createDeleteButtonClickHandler(order)}>
-
-                              <Icon>delete</Icon>
-
-                            </IconButton>
-
-                          </Tooltip>
-
-                          <Tooltip title={'Edit'} placement={'left'}>
-
-                            <IconButton color={'primary'}
-                                        onClick={this.createEditButtonClickHandler(order, index)}>
-
-                              <Icon>edit</Icon>
-
-                            </IconButton>
-
-                          </Tooltip>
-
-                        </Grid>
-
-                      </TableCell>
+                      <TableCell>Actions</TableCell>
 
                     </TableRow>
 
-                  );
+                  </TableHead>
 
-                })
+                  <TableBody>
 
-              }
+                    {
+                      this.state.orders.map((order, index) => {
 
-            </TableBody>
+                        return (
 
-            <TableFooter>
-              <TableRow>
-                <TablePagination
-                  colSpan={11}
-                  count={this.state.count}
-                  rowsPerPage={this.state.rowPerPage}
-                  rowsPerPageOptions={[]}
-                  page={this.state.page}
-                  onChangePage={this.handleChangePage}
-                />
-              </TableRow>
-            </TableFooter>
+                                <TableRow key={order._id}>
 
-          </Table>
+                                  <TableCell padding={'dense'}>{order.type}</TableCell>
 
-        </div>
+                                  <TableCell padding={'dense'}>{order.side}</TableCell>
 
-      </Paper>
+                                  <TableCell padding={'dense'}>{order.currency}</TableCell>
+
+                                  <TableCell padding={'dense'}>{order.baseCurrency}</TableCell>
+
+                                  <TableCell padding={'dense'}>{order.limitPrice}</TableCell>
+
+                                  <TableCell padding={'dense'}>{order.quantity}</TableCell>
+
+                                  <TableCell padding={'dense'}>{order.filledQuantity}</TableCell>
+
+                                  <TableCell padding={'dense'}>{order.status}</TableCell>
+
+                                  <TableCell padding={'dense'}>
+
+                                    {Util.formatDateToUTC(new Date(order.createdAt))}
+
+                                  </TableCell>
+
+                                  <TableCell>{Util.formatDateToUTC(new Date(order.lastUpdatedAt))}</TableCell>
+
+                                  <TableCell>
+
+                                    <Grid container={true}>
+
+                                      <Tooltip title={'Delete'} placement={'left'}>
+
+                                        <IconButton color={'secondary'}
+                                                    onClick={this.createDeleteButtonClickHandler(order)}>
+
+                                          <Icon>delete</Icon>
+
+                                        </IconButton>
+
+                                      </Tooltip>
+
+                                      <Tooltip title={'Edit'} placement={'left'}>
+
+                                        <IconButton color={'primary'}
+                                                    onClick={this.createEditButtonClickHandler(order, index)}>
+
+                                          <Icon>edit</Icon>
+
+                                        </IconButton>
+
+                                      </Tooltip>
+
+                                    </Grid>
+
+                                  </TableCell>
+
+                                </TableRow>
+
+                        );
+
+                      })
+
+                    }
+
+                  </TableBody>
+
+                  <TableFooter>
+                    <TableRow>
+                      <TablePagination
+                              colSpan={11}
+                              count={this.state.count}
+                              rowsPerPage={this.state.rowPerPage}
+                              rowsPerPageOptions={[]}
+                              page={this.state.page}
+                              onChangePage={this.handleChangePage}
+                      />
+                    </TableRow>
+                  </TableFooter>
+
+                </Table>
+
+              </div>
+
+            </Paper>
 
     );
 
