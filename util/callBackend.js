@@ -50,13 +50,13 @@ function prepair(options) {
  * @param options
  * @return result object of the call if success, otherwise the error object
  */
-module.exports.get = (options) => {
+module.exports.get = async (options) => {
   prepair(options);
 
   logger.info(`callBE.js: UI calls backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
   // just returns result of the call
-  rp(options)
+  const result = await rp(options)
     .then((parsedBody) => {
       logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} successful, result=${JSON.stringify(parsedBody)}`);
       return parsedBody;
@@ -65,6 +65,8 @@ module.exports.get = (options) => {
       logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(err)}`);
       return err;
     });
+
+  return result;
 };
 
 /**
@@ -80,7 +82,7 @@ module.exports.get = (options) => {
  * @param options
  * @return result object of the call if success, otherwise the error object
  */
-module.exports.post = (options) => {
+module.exports.post = async (options) => {
   prepair(options);
 
   options.method = 'POST';
@@ -88,7 +90,7 @@ module.exports.post = (options) => {
   logger.info(`callBE.js: UI calls backend API POST: ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
   // just returns result of the call
-  rp(options)
+  const result = await rp(options)
     .then((parsedBody) => {
       logger.info(`callBE.js: backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} successful, result=${JSON.stringify(parsedBody)}`);
       return parsedBody;
@@ -97,4 +99,6 @@ module.exports.post = (options) => {
       logger.info(`callBE.js: backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(err)}`);
       return err;
     });
+
+  return result;
 };
