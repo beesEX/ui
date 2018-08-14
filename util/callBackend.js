@@ -48,15 +48,15 @@ function prepair(options) {
  * For further options refer to https://github.com/request/request#requestoptions-callback
  *
  * @param options
- * @return result object of the call if success, otherwise the error object
+ * @return {Promise<result-obj>} Promise of result object of the call if success, otherwise the error object
  */
-module.exports.get = async (options) => {
+module.exports.get = (options) => {
   prepair(options);
 
   logger.info(`callBE.js: UI calls backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
   // just returns result of the call
-  const result = await rp(options)
+  return rp(options)
     .then((parsedBody) => {
       logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} successful, result=${JSON.stringify(parsedBody)}`);
       return parsedBody;
@@ -65,8 +65,6 @@ module.exports.get = async (options) => {
       logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(err)}`);
       return err;
     });
-
-  return result;
 };
 
 /**
@@ -80,9 +78,9 @@ module.exports.get = async (options) => {
  * For further options refer to https://github.com/request/request#requestoptions-callback
  *
  * @param options
- * @return result object of the call if success, otherwise the error object
+ * @return {Promise<result-obj>} Promise of result object of the call if success, otherwise the error object
  */
-module.exports.post = async (options) => {
+module.exports.post = (options) => {
   prepair(options);
 
   options.method = 'POST';
@@ -90,7 +88,7 @@ module.exports.post = async (options) => {
   logger.info(`callBE.js: UI calls backend API POST: ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
   // just returns result of the call
-  const result = await rp(options)
+  return rp(options)
     .then((parsedBody) => {
       logger.info(`callBE.js: backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} successful, result=${JSON.stringify(parsedBody)}`);
       return parsedBody;
@@ -99,6 +97,4 @@ module.exports.post = async (options) => {
       logger.info(`callBE.js: backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(err)}`);
       return err;
     });
-
-  return result;
 };
