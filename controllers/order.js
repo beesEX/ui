@@ -120,7 +120,7 @@ async function getOrdersFromBackEnd(req, extraOptions) {
   });
 
 }
-
+// POST /order/place
 exports.placeOrder = (req, res) => {
 
   logger.debug(`place Order ${JSON.stringify(req.body)}`);
@@ -184,6 +184,7 @@ exports.placeOrder = (req, res) => {
 
 exports.getOrdersFromBackEnd = getOrdersFromBackEnd;
 
+// GET /order/history
 exports.getOrders = (req, res) => {
 
   const dataPromise = getOrdersFromBackEnd(req);
@@ -274,6 +275,7 @@ async function _cancelOrder(req) {
 
 }
 
+// POST /order/cancel
 exports.cancelOrder = (req, res) => {
 
   logger.debug(`cancel order req.body = ${JSON.stringify(req.body)}}`);
@@ -379,6 +381,7 @@ async function _updateOrder(req) {
   });
 }
 
+// POST /order/update
 exports.updateOrder = (req, res) => {
 
   logger.debug(`update order req.body = ${JSON.stringify(req.body)}`);
