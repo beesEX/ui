@@ -134,6 +134,8 @@ class MarketContent extends React.Component {
           rowPerPage={window.market.limit}
           alertDialog={this.alertDialogRef}
           updateOrderDialog={this.updateOrderDialog}
+          baseCurrency={window.market.baseCurrency}
+          currency={window.market.currency}
         />
 
         <AlertDialog
