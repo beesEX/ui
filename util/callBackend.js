@@ -1,5 +1,5 @@
-const rp = require('request-promise-native');
 const http = require('http');
+const request = require('request');
 
 const {logger} = global;
 
@@ -15,12 +15,12 @@ function prepair(options) {
   }
 
   // add jwt as Cookie-header of api call request
-  if (options.req.session.jwtToken) {
-    if (options.headers) {
+  if(options.req.session.jwtToken) {
+    if(options.headers) {
       options.headers.Cookie = `auth=${options.req.session.jwtToken}`;
     }
-    else {
-      options.headers = { Cookie: `auth=${options.req.session.jwtToken}`};
+    else{
+      options.headers = {Cookie: `auth=${options.req.session.jwtToken}`};
     }
   }
 
@@ -28,13 +28,36 @@ function prepair(options) {
   options.baseUrl = backendBasedUrl;
 
   /*
-  For GET requests: parse response body to JSON object automatically, as backend API returns JSON most of the time
-  For POST requests: stringify options.body object & parse response body to JSON object automatically, as backend API expects & returns JSON most of the time
+   For GET requests: parse response body to JSON object automatically, as backend API returns JSON most of the time
+   For POST requests: stringify options.body object & parse response body to JSON object automatically, as backend API expects & returns JSON most of the time
    */
   options.json = true;
 
   // remove expressJS req from options before sending
-  if (options.req) delete options.req;
+  if(options.req) delete options.req;
+}
+
+function promisifyRequest(options) {
+
+  return new Promise(resolve => request(options, (error, response, body) => {
+
+    if(error) {
+
+      logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(error)}`);
+
+      resolve(error);
+
+    }
+    else{
+
+      logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} successful, result=${JSON.stringify(body)}`);
+
+      resolve(body);
+
+    }
+
+  }));
+
 }
 
 /**
@@ -55,16 +78,8 @@ module.exports.get = (options) => {
 
   logger.info(`callBE.js: UI calls backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
-  // just returns result of the call
-  return rp(options)
-    .then((parsedBody) => {
-      logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} successful, result=${JSON.stringify(parsedBody)}`);
-      return parsedBody;
-    })
-    .catch((err) => { // simple default error handling
-      logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(err)}`);
-      return err;
-    });
+  return promisifyRequest(options);
+
 };
 
 /**
@@ -85,16 +100,5 @@ module.exports.post = (options) => {
 
   options.method = 'POST';
 
-  logger.info(`callBE.js: UI calls backend API POST: ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
-
-  // just returns result of the call
-  return rp(options)
-    .then((parsedBody) => {
-      logger.info(`callBE.js: backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} successful, result=${JSON.stringify(parsedBody)}`);
-      return parsedBody;
-    })
-    .catch((err) => { // simple default error handling
-      logger.info(`callBE.js: backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(err)}`);
-      return err;
-    });
+  return promisifyRequest(options);
 };
