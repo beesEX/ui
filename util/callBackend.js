@@ -11,7 +11,7 @@ const backendBasedUrl = process.env.BACKEND_URL || 'http://localhost:3001';
  */
 function prepair(options) {
   if(!(options.req instanceof http.IncomingMessage)) {
-    throw new Error(`invalid request object: ${options.req}. 'options.req' must be a expressKS request object`);
+    throw new Error(`invalid request object: ${options.req}. 'options.req' must be a expressJS request object`);
   }
 
   // add jwt as Cookie-header of api call request
@@ -43,14 +43,14 @@ function promisifyRequest(options) {
 
     if(error) {
 
-      logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(error)}`);
+      logger.info(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(error)}`);
 
       resolve(error);
 
     }
     else{
 
-      logger.info(`callBE.js: backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} successful, result=${JSON.stringify(body)}`);
+      logger.info(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} was successful, result=${JSON.stringify(body)}`);
 
       resolve(body);
 
@@ -70,16 +70,15 @@ function promisifyRequest(options) {
  *
  * For further options refer to https://github.com/request/request#requestoptions-callback
  *
- * @param options
- * @return {Promise<result-obj>} Promise of result object of the call if success, otherwise the error object
+ * @param {Object} options: options object as required by request module
+ * @return {Promise<{Object}>} Promise of result object of the call if success, otherwise the error object
  */
 module.exports.get = (options) => {
   prepair(options);
 
-  logger.info(`callBE.js: UI calls backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
+  logger.info(`callBackend.js: UI calls backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
   return promisifyRequest(options);
-
 };
 
 /**
@@ -92,13 +91,14 @@ module.exports.get = (options) => {
  *
  * For further options refer to https://github.com/request/request#requestoptions-callback
  *
- * @param options
- * @return {Promise<result-obj>} Promise of result object of the call if success, otherwise the error object
+ * @param {Object} options: options object as required by request module
+ * @return {Promise<{Object}>} Promise of result object of the call if success, otherwise the error object
  */
 module.exports.post = (options) => {
   prepair(options);
-
   options.method = 'POST';
+
+  logger.info(`callBackend.js: UI calls backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
   return promisifyRequest(options);
 };
