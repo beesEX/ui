@@ -7,6 +7,8 @@ const {getOrdersFromBackEnd} = require('./order');
 
 const createRequestToBackend = require('../util/createRequestToBackend');
 
+const requestToBackEnd = require('../util/callBackend');
+
 const {logger} = global;
 
 /**
@@ -20,46 +22,24 @@ async function getAggregatedOrderBook(req) {
 
   logger.debug(`get aggregated order book  from back end with params: currency = ${req.params.currency} and base currency = ${req.params.baseCurrency}`);
 
-  return new Promise((resolve, reject) => {
+  if(process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK) {
 
-    const requestToBackend = createRequestToBackend(req);
+    const url = process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK.replace(':currency', req.params.currency).replace(':baseCurrency', req.params.baseCurrency);
 
-    const url = process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK
-      .replace(':currency', req.params.currency)
-      .replace(':baseCurrency', req.params.baseCurrency);
+    const options = {
 
-    requestToBackend.get(url, (error, response, body) => {
+      url,
 
-      if (error) {
+      req
 
-        reject(error);
+    };
 
-      }
-      else if (body) {
+    return requestToBackEnd.get(options);
 
-        const parsedBody = JSON.parse(body);
+  }
 
-        if (parsedBody.errors && parsedBody.errors.length > 0) {
+  return Promise.reject(new Error('Url for getting aggragated state of order book on back end do not exist in process.env'));
 
-          reject(new Error(parsedBody.errors[0].message));
-
-        }
-        else {
-
-          resolve(parsedBody);
-
-        }
-
-      }
-      else {
-
-        logger.error('back end sends no body back');
-
-        reject(new Error('Unable to get the aggregated order book'));
-      }
-
-    });
-  });
 }
 
 exports.index = (req, res) => {
@@ -68,7 +48,7 @@ exports.index = (req, res) => {
 
   const arrayOfCurrencies = req.params.symbol.split('_');
 
-  [req.params.currency, req.params.baseCurrency] = arrayOfCurrencies;
+  [ req.params.currency, req.params.baseCurrency ] = arrayOfCurrencies;
 
   const limit = 10;
 
@@ -88,16 +68,75 @@ exports.index = (req, res) => {
 
   const aggregatedOrderBookPromise = getAggregatedOrderBook(req);
 
-  Promise.all([ordersPromise, aggregatedOrderBookPromise]).then((arrayOfResponses) => {
+  Promise.all([ ordersPromise, aggregatedOrderBookPromise ]).then((arrayOfResponses) => {
 
-    const data = arrayOfResponses[0];
+    const dataFromOrdersPromise = arrayOfResponses[ 0 ];
 
-    data.orders = JSON.stringify(arrayOfResponses[0].orders);
-    data.limit = limit;
-    data.title = 'Market';
-    data.aggregatedState = JSON.stringify(arrayOfResponses[1]);
+    const dataFromAggregatedOrderBookPromise = arrayOfResponses[ 1 ];
 
-    res.render('market', data);
+    let errorOccurred = false;
+
+    if(dataFromOrdersPromise instanceof Error) {
+
+      req.flash('errors', {msg: dataFromOrdersPromise.message});
+
+      errorOccurred = true;
+
+    }
+    else if(dataFromOrdersPromise.error) {
+
+      req.flash('errors', {msg: dataFromOrdersPromise.error.message});
+
+      errorOccurred = true;
+
+    }
+
+    if(typeof dataFromAggregatedOrderBookPromise === 'string') {
+
+      req.flash('errors', {msg: dataFromAggregatedOrderBookPromise});
+
+      errorOccurred = true;
+
+    }
+    else if(dataFromAggregatedOrderBookPromise.error) {
+
+      req.flash('errors', {msg: dataFromAggregatedOrderBookPromise.error.message});
+
+      errorOccurred = true;
+
+    }
+    else if(dataFromAggregatedOrderBookPromise instanceof Error) {
+
+      req.flash('errors', {msg: dataFromAggregatedOrderBookPromise.message});
+
+      errorOccurred = true;
+
+    }
+
+
+    if(errorOccurred) {
+
+      const data = {title: 'Market'};
+
+      res.render('market', data);
+    }
+    else{
+
+      const data = dataFromOrdersPromise;
+
+      data.limit = limit;
+
+      data.currency = extraOptions.currency;
+
+      data.baseCurrency = extraOptions.baseCurrency;
+
+      data.title = 'Market';
+
+      data.aggregatedState = dataFromAggregatedOrderBookPromise;
+
+      res.render('market', data);
+
+    }
 
 
   }, (error) => {

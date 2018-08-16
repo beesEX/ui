@@ -3,123 +3,74 @@
  * Created by Ngoc Son Le.
  */
 
-const { logger } = global;
+const {logger} = global;
 
 const Order = require('../models/Order');
 
-const createRequestToBackend = require('../util/createRequestToBackend');
+const requestToBackEnd = require('../util/callBackend');
 
 async function getOrdersFromBackEnd(req, extraOptions) {
 
   logger.debug(`get orders from back end with params: ${(req.query) ? JSON.stringify(req.query) : undefined} and extra options: ${(extraOptions) ? JSON.stringify(extraOptions) : undefined}`);
 
-  return new Promise((resolve, reject) => {
+  let options;
 
-    let limit;
+  if(req.query) {
 
-    let offset;
+    const {limit, offset, currency, baseCurrency} = req.query;
 
-    let currency;
+    options = {
 
-    let baseCurrency;
+      limit,
 
-    let options;
+      offset,
 
-    if(req.query) {
+      currency,
 
-      ({
-        limit,
-        offset,
-        currency,
-        baseCurrency
-      } = req.query);
+      baseCurrency
 
-      options = {
-        limit,
-        offset,
-        currency,
-        baseCurrency
-      };
+    };
 
-    }
-    else{
+  }
+  else{
 
-      options = {};
+    options = {};
 
-    }
+  }
 
-    if(extraOptions) {
+  if(extraOptions) {
 
-      options = Object.assign(options, extraOptions);
+    options = Object.assign(options, extraOptions);
 
-    }
+  }
 
-    options.sort = JSON.stringify(options.sort || { lastUpdatedAt: -1 }); // -1 = descending
+  options.sort = JSON.stringify(options.sort || {lastUpdatedAt: -1}); // -1 = descending
 
-    let url = `${process.env.BACKEND_GET_ORDER}?`;
+  let url = `${process.env.BACKEND_GET_ORDER}?`;
 
-    let optionValue;
+  let optionValue;
 
-    // eslint-disable-next-line guard-for-in
-    for(const optionName in options) {
+  // eslint-disable-next-line guard-for-in
+  for(const optionName in options) {
 
-      optionValue = options[ optionName ];
+    optionValue = options[ optionName ];
 
-      if(optionValue) {
+    if(optionValue) {
 
-        url += `${optionName}=${optionValue}&`;
-
-      }
+      url += `${optionName}=${optionValue}&`;
 
     }
 
-    const requestToBackend = createRequestToBackend(req);
+  }
 
-    requestToBackend.get(url, (error, response, body) => {
+  options.url = url;
 
-      if(error) {
+  options.req = req;
 
-        reject(error);
-
-      }
-      else if(body) {
-
-        const parsedBody = JSON.parse(body);
-
-        if(parsedBody.errors && parsedBody.errors.length > 0) {
-
-          reject(new Error(parsedBody.errors[ 0 ].message));
-
-        }
-        else{
-
-          resolve({
-
-            currency: options.currency,
-
-            baseCurrency: options.baseCurrency,
-
-            orders: parsedBody.orders || [],
-
-            count: parsedBody.count
-
-          });
-
-        }
-
-      }
-      else{
-
-        logger.error('back end sends no body back');
-
-        reject(new Error('Unable to get active orders'));
-      }
-
-    });
-
-  });
+  return requestToBackEnd.get(options);
 
 }
+
 // POST /order/place
 exports.placeOrder = (req, res) => {
 
@@ -140,41 +91,39 @@ exports.placeOrder = (req, res) => {
   }
   else{
 
-    const requestToBackend = createRequestToBackend(req);
-
     const options = {
 
       url: process.env.BACKEND_ORDER_PLACE,
 
-      form: order.toJSON()
+      body: order.toJSON(),
+
+      req
     };
 
-    requestToBackend.post(options, (err, httpResponse, body) => {
+    requestToBackEnd.post(options).then((createdOrder) => {
 
-      if(err) {
-
-        res.json({
-
-          errors: err.message
-
-        });
-
-      }
-      else if(body) {
+      if(createdOrder) {
 
         res.json({
 
-          createdOrder: JSON.parse(body)
+          createdOrder
 
         });
 
       }
       else{
 
-        res.status(500)
-          .send('can not connect to backend');
+        res.status(500).send('can not connect to backend');
 
       }
+
+    }, (error) => {
+
+      res.json({
+
+        error: error.message
+
+      });
 
     });
 
@@ -207,71 +156,27 @@ exports.getOrders = (req, res) => {
 
 async function _cancelOrder(req) {
 
-  return new Promise((resolve, reject) => {
+  if(process.env.BACKEND_ORDER_CANCEL) {
 
-    if(process.env.BACKEND_ORDER_CANCEL) {
+    const options = {
 
-      if(req.body && req.body.orderId) {
+      url: process.env.BACKEND_ORDER_CANCEL,
 
-        const requestToBackend = createRequestToBackend(req);
+      body: {
 
-        const options = {
+        orderId: req.body.orderId
 
-          url: process.env.BACKEND_ORDER_CANCEL,
+      },
 
-          form: {
+      req
 
-            orderId: req.body.orderId
+    };
 
-          }
+    return requestToBackEnd.post(options);
 
-        };
+  }
 
-        requestToBackend.post(options, (error, reponse, body) => {
-
-          if(error) {
-
-            reject(error);
-
-          }
-          else if(body) {
-
-            const parsedBody = JSON.parse(body);
-
-            if(parsedBody.errors && parsedBody.errors.length > 0) {
-
-              reject(new Error(parsedBody.errors[ 0 ].message));
-
-            }
-            else{
-
-              reject(new Error('body is not null'));
-
-            }
-          }
-          else{
-
-            resolve();
-
-          }
-
-        });
-
-      }
-      else{
-
-        reject(new Error('orderId do not exist in request body'));
-
-      }
-
-    }
-    else{
-
-      reject(new Error('Url for canceling order do not exist in process.env'));
-
-    }
-
-  });
+  return Promise.reject(new Error('Url for canceling order do not exist in process.env'));
 
 }
 
@@ -280,34 +185,36 @@ exports.cancelOrder = (req, res) => {
 
   logger.debug(`cancel order req.body = ${JSON.stringify(req.body)}}`);
 
-  const resultPromise = _cancelOrder(req)
-    .then(() => {
+  const resultPromise = _cancelOrder(req).then((response) => {
 
-      const extraOptions = {
+    if(response && response.error) {
 
-        offset: req.body.offset,
+      return Promise.reject(new Error(response.error.message));
 
-        limit: req.body.limit,
+    }
 
-        currency: req.body.currency,
+    const extraOptions = {
 
-        baseCurrency: req.body.baseCurrency
+      offset: req.body.offset,
 
-      };
+      limit: req.body.limit,
 
-      return getOrdersFromBackEnd(req, extraOptions);
+      currency: req.body.currency,
 
-    }, (error) => {
+      baseCurrency: req.body.baseCurrency
 
-      logger.error(error.message);
+    };
 
-      res.json({
+    return getOrdersFromBackEnd(req, extraOptions);
 
-        error: 'Can not cancel order'
 
-      });
+  }, (error) => {
 
-    });
+    logger.error(`Can not cancel order. Reason: ${error.message}`);
+
+    return Promise.reject(error);
+
+  });
 
   resultPromise.then((data) => {
 
@@ -326,59 +233,24 @@ exports.cancelOrder = (req, res) => {
 
 async function _updateOrder(req) {
 
-  return new Promise((resolve, reject) => {
+  if(process.env.BACKEND_ORDER_UPDATE) {
 
-    if(process.env.BACKEND_ORDER_UPDATE) {
+    const options = {
 
-      if(req.body && Object.keys(req.body).length > 0) {
+      url: process.env.BACKEND_ORDER_UPDATE,
 
-        const requestToBackend = createRequestToBackend(req);
+      body: req.body,
 
-        const options = {
+      req
 
-          url: process.env.BACKEND_ORDER_UPDATE,
+    };
 
-          form: req.body
+    return requestToBackEnd.post(options);
 
-        };
+  }
 
-        requestToBackend.post(options, (error, response, body) => {
+  return Promise.reject(new Error('Url for updating order do not exist in process.env'));
 
-          if(error) {
-
-            reject(error);
-
-          }
-          else if(body) {
-
-            resolve(JSON.parse(body));
-
-          }
-          else{
-
-            logger.error('back end sends no body back');
-
-            reject(new Error('Unable to update body'));
-
-          }
-
-        });
-
-      }
-      else{
-
-        reject(new Error('request body is empty'));
-
-      }
-
-    }
-    else{
-
-      reject(new Error('Url for updating order do not exist in process.env'));
-
-    }
-
-  });
 }
 
 // POST /order/update
@@ -386,23 +258,48 @@ exports.updateOrder = (req, res) => {
 
   logger.debug(`update order req.body = ${JSON.stringify(req.body)}`);
 
-  _updateOrder(req)
-    .then((updatedOrder) => {
+  _updateOrder(req).then((response) => {
+
+    if(response) {
+
+      if(response.error) {
+
+        res.json({
+
+          error: response.error.message
+
+        });
+
+      }
+      else{
+
+        res.json({
+
+          updatedOrder: response
+
+        });
+
+      }
+
+    }
+    else{
 
       res.json({
 
-        updatedOrder
+        error: 'response from back end is empty'
 
       });
 
-    }, (error) => {
+    }
 
-      res.json({
+  }, (error) => {
 
-        error
+    res.json({
 
-      });
+      error: error.message
 
     });
+
+  });
 
 };

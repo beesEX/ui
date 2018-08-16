@@ -2,15 +2,18 @@ extends ../layout
 
 block content
   div#market-content
-  script.
-    window.market = {}
-    window.market.currency = '#{currency}';
-    window.market.baseCurrency = '#{baseCurrency}';
-    window.market.orders = !{orders};
-    window.market.count= #{count};
-    window.market.limit= #{limit};
-    window.market.aggregatedOrderBookState = !{aggregatedState};
-    console.log(!{aggregatedState});
-  script(src='/js/market/market.js')
-
-
+  - if (currency && baseCurrency)
+      script
+        != 'window.market = {};\n'
+        != `window.market.currency = '${currency}';\n`
+        != `window.market.baseCurrency = '${baseCurrency}';\n`
+        if (orders instanceof Array)
+          - var ordersString = JSON.stringify(orders)
+          != `window.market.orders = ${ordersString};\n`
+          != `window.market.count = ${count || 0};\n`
+          != `window.market.limit = ${limit || 0};\n`
+        if(aggregatedOrderBookState)
+          - var aggregatedOrderBookStateString = JSON.stringify(aggregatedOrderBookState)
+          != `window.market.aggregatedOrderBookState = ${aggregatedOrderBookStateString};\n`
+          != 'console.log(window.market.aggregatedOrderBookState);\n'
+      script(src='/js/market/market.js')

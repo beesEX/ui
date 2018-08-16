@@ -43,14 +43,14 @@ function promisifyRequest(options) {
 
     if(error) {
 
-      logger.info(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(error)}`);
+      logger.debug(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(error)}`);
 
       resolve(error);
 
     }
     else{
 
-      logger.info(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} was successful, result=${JSON.stringify(body)}`);
+      logger.debug(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} was successful, result=${JSON.stringify(body)}`);
 
       resolve(body);
 
@@ -76,7 +76,7 @@ function promisifyRequest(options) {
 module.exports.get = (options) => {
   prepair(options);
 
-  logger.info(`callBackend.js: UI calls backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
+  logger.debug(`callBackend.js: UI calls backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
   return promisifyRequest(options);
 };
@@ -98,7 +98,7 @@ module.exports.post = (options) => {
   prepair(options);
   options.method = 'POST';
 
-  logger.info(`callBackend.js: UI calls backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
+  logger.debug(`callBackend.js: UI calls backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
   return promisifyRequest(options);
 };
