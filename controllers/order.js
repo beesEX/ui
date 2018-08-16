@@ -95,7 +95,7 @@ exports.placeOrder = (req, res) => {
 
       url: process.env.BACKEND_ORDER_PLACE,
 
-      body: order.toJSON(),
+      body: order,
 
       req
     };

@@ -154,8 +154,8 @@ class Order {
       json.side,
       json.currency,
       json.baseCurrency,
-      json.limitPrice,
-      json.quantity
+      parseFloat(json.limitPrice),
+      parseFloat(json.quantity)
     );
 
   }
