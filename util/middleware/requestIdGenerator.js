@@ -5,12 +5,14 @@
 
 const uuidv4 = require('uuid/v4');
 
+const requestNamespace = require('../../config/requestNamespace');
+
 function generateUUIDForRequest(req, res, next) {
 
-  req.requestId = uuidv4();
+  requestNamespace.set('requestId', uuidv4());
 
   next();
 
 }
 
-module.exports = generateUUIDForRequest;
+module.exports = requestNamespace.bind(generateUUIDForRequest);

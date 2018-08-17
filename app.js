@@ -70,12 +70,10 @@ app.set('host', process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0');
 app.set('port', process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-app.use(requestUUIDGenerator);
 app.use(expressStatusMonitor());
 app.use(compression());
 app.use(sass({
-  src: path.join(__dirname, 'public'),
-  dest: path.join(__dirname, 'public')
+  src: path.join(__dirname, 'public'), dest: path.join(__dirname, 'public')
 }));
 
 // TODO find out how to configure winston logger for expressJS
@@ -90,8 +88,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   cookie: {maxAge: 1209600000}, // two weeks in milliseconds
   store: new MongoStore({
-    url: process.env.MONGODB_URI,
-    autoReconnect: true,
+    url: process.env.MONGODB_URI, autoReconnect: true,
   })
 }));
 app.use(passport.initialize());
@@ -114,20 +111,17 @@ app.use((req, res, next) => {
 });
 app.use((req, res, next) => {
   // After successful login, redirect back to the intended page
-  if(!req.user &&
-          req.path !== '/login' &&
-          req.path !== '/signup' &&
-          !req.path.match(/^\/auth/) &&
-          !req.path.match(/\./)) {
+  if(!req.user && req.path !== '/login' && req.path !== '/signup' && !req.path.match(/^\/auth/) && !req.path.match(/\./)) {
     req.session.returnTo = req.originalUrl;
   }
-  else if(req.user &&
-          (req.path === '/account' || req.path.match(/^\/api/))) {
+  else if(req.user && (req.path === '/account' || req.path.match(/^\/api/))) {
     req.session.returnTo = req.originalUrl;
   }
   next();
 });
 app.use(express.static(path.join(__dirname, 'public'), {maxAge: 31557600000}));
+app.use(requestUUIDGenerator);
+
 
 /**
  * public routes, no authentication required

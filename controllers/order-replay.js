@@ -8,7 +8,7 @@ exports.index = (req, res) => {
 
 // GET /finance/status/:currency
 exports.financeStatus = async (req, res) => {
-  logger.bindTo(req).info(`order-replay.js financeStatus(): retrieves finance status of ${req.params.currency} ...`);
+  logger.info(`order-replay.js financeStatus(): retrieves finance status of ${req.params.currency} ...`);
 
   const options = {
     uri: `/finance/status/${req.params.currency}`,
@@ -21,7 +21,7 @@ exports.financeStatus = async (req, res) => {
 
 // POST /finance/deposit/:currency
 exports.depositFund = async (req, res) => {
-  logger.bindTo(req).info(`order-replay.js depositFund(): deposit fund request of ${req.body.amount} ${req.params.currency} ...`);
+  logger.info(`order-replay.js depositFund(): deposit fund request of ${req.body.amount} ${req.params.currency} ...`);
 
   const options = {
     uri: `/finance/deposit/${req.params.currency}`,

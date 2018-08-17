@@ -18,7 +18,7 @@ const {logger} = global;
  */
 async function getAggregatedOrderBook(req) {
 
-  logger.bindTo(req).debug(`get aggregated order book  from back end with params: currency = ${req.params.currency} and base currency = ${req.params.baseCurrency}`);
+  logger.debug(`get aggregated order book  from back end with params: currency = ${req.params.currency} and base currency = ${req.params.baseCurrency}`);
 
   if(process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK) {
 
@@ -42,7 +42,7 @@ async function getAggregatedOrderBook(req) {
 
 exports.index = (req, res) => {
 
-  logger.bindTo(req).debug(`Market index page with symbol ${req.params.symbol} gets accessed`);
+  logger.debug(`Market index page with symbol ${req.params.symbol} gets accessed`);
 
   const arrayOfCurrencies = req.params.symbol.split('_');
 

@@ -18,11 +18,11 @@ function requestLogin(req, res, next, redirectUrl) {
       return res.redirect('/login');
     }
     req.logIn(user, (err) => {
-      logger.bindTo(req).info(`initiate a login session for user with email=${user.email} by requesting JWT from backend`);
+      logger.info(`initiate a login session for user with email=${user.email} by requesting JWT from backend`);
       if(err) {
         return next(err);
       }
-      logger.bindTo(req).info(info);
+      logger.info(info);
       req.session.jwtToken = info.token;
       req.session.save();
       res.redirect(redirectUrl);

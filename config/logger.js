@@ -2,27 +2,11 @@ const {createConsoleLogger} = require('@paralect/common-logger');
 
 const logger = createConsoleLogger({isDev: process.env.NODE_ENV === 'development'});
 
+const requestNamespace = require('./requestNamespace');
+
 function createWrappedConsoleLogger() {
 
   const wrappedLogger = {
-
-    bindTo: function bindTo(request) {
-
-      if(request && request.requestId) {
-
-        wrappedLogger.requestId = request.requestId;
-
-        request.res.on('finish', () => {
-
-          wrappedLogger.requestId = '';
-
-        });
-
-      }
-
-      return this;
-
-    },
 
     log: function log(level, message) {
 
@@ -64,9 +48,11 @@ function createWrappedConsoleLogger() {
 
     wrappedLogger[ logLevel ] = (message) => {
 
-      if(wrappedLogger.requestId) {
+      const requestId = requestNamespace.get('requestId');
 
-        logger[ logLevel ](`[Request Id: ${wrappedLogger.requestId}]: ${message}`);
+      if(requestId) {
+
+        logger[ logLevel ](`[Request Id: ${requestId}]: ${message}`);
 
       }
       else{
