@@ -17,6 +17,7 @@ const passport = require('passport');
 const expressValidator = require('express-validator');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
+const requestUUIDGenerator = require('./util/middleware/requestIdGenerator');
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -69,6 +70,7 @@ app.set('host', process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0');
 app.set('port', process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+app.use(requestUUIDGenerator);
 app.use(expressStatusMonitor());
 app.use(compression());
 app.use(sass({
@@ -217,7 +219,7 @@ webSocketServer.start().then(() => {
  * Start Express server.
  */
 app.listen(app.get('port'), () => {
-  logger.info('%s App is running at http://localhost:%d in %s mode', chalk.green('✓'), app.get('port'), app.get('env'));
+  logger.info(`${chalk.green('✓')} App is running at http://localhost:${app.get('port')} in ${app.get('env')} mode`);
   logger.log('  Press CTRL-C to stop\n');
 });
 

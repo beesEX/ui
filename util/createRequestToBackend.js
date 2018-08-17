@@ -29,7 +29,7 @@ function createRequest(req) {
 
   if(!req.session.jwtToken) {
 
-    logger.warn('can not find jwt token in session of req object');
+    logger.bindTo(req).warn('can not find jwt token in session of req object');
 
 
   }

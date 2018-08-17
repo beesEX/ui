@@ -11,7 +11,7 @@ const requestToBackEnd = require('../util/callBackend');
 
 async function getOrdersFromBackEnd(req, extraOptions) {
 
-  logger.debug(`get orders from back end with params: ${(req.query) ? JSON.stringify(req.query) : undefined} and extra options: ${(extraOptions) ? JSON.stringify(extraOptions) : undefined}`);
+  logger.bindTo(req).debug(`get orders from back end with params: ${(req.query) ? JSON.stringify(req.query) : undefined} and extra options: ${(extraOptions) ? JSON.stringify(extraOptions) : undefined}`);
 
   let options;
 
@@ -74,7 +74,7 @@ async function getOrdersFromBackEnd(req, extraOptions) {
 // POST /order/place
 exports.placeOrder = (req, res) => {
 
-  logger.debug(`place Order ${JSON.stringify(req.body)}`);
+  logger.bindTo(req).debug(`place Order ${JSON.stringify(req.body)}`);
 
   const order = Order.fromJSON(req.body);
 
@@ -183,7 +183,7 @@ async function _cancelOrder(req) {
 // POST /order/cancel
 exports.cancelOrder = (req, res) => {
 
-  logger.debug(`cancel order req.body = ${JSON.stringify(req.body)}}`);
+  logger.bindTo(req).debug(`cancel order req.body = ${JSON.stringify(req.body)}}`);
 
   const resultPromise = _cancelOrder(req).then((response) => {
 
@@ -210,7 +210,7 @@ exports.cancelOrder = (req, res) => {
 
   }, (error) => {
 
-    logger.error(`Can not cancel order. Reason: ${error.message}`);
+    logger.bindTo(req).error(`Can not cancel order. Reason: ${error.message}`);
 
     return Promise.reject(error);
 
@@ -256,7 +256,7 @@ async function _updateOrder(req) {
 // POST /order/update
 exports.updateOrder = (req, res) => {
 
-  logger.debug(`update order req.body = ${JSON.stringify(req.body)}`);
+  logger.bindTo(req).debug(`update order req.body = ${JSON.stringify(req.body)}`);
 
   _updateOrder(req).then((response) => {
 

@@ -5,8 +5,6 @@
 
 const {getOrdersFromBackEnd} = require('./order');
 
-const createRequestToBackend = require('../util/createRequestToBackend');
-
 const requestToBackEnd = require('../util/callBackend');
 
 const {logger} = global;
@@ -20,7 +18,7 @@ const {logger} = global;
  */
 async function getAggregatedOrderBook(req) {
 
-  logger.debug(`get aggregated order book  from back end with params: currency = ${req.params.currency} and base currency = ${req.params.baseCurrency}`);
+  logger.bindTo(req).debug(`get aggregated order book  from back end with params: currency = ${req.params.currency} and base currency = ${req.params.baseCurrency}`);
 
   if(process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK) {
 
@@ -44,7 +42,7 @@ async function getAggregatedOrderBook(req) {
 
 exports.index = (req, res) => {
 
-  logger.debug(`Market index page with symbol ${req.params.symbol} gets accessed`);
+  logger.bindTo(req).debug(`Market index page with symbol ${req.params.symbol} gets accessed`);
 
   const arrayOfCurrencies = req.params.symbol.split('_');
 

@@ -24,6 +24,12 @@ function prepair(options) {
     }
   }
 
+  if(options.req) {
+
+    options.headers[ 'X-Request-Id' ] = options.req.requestId;
+
+  }
+
   // add backend host as baseUrl
   options.baseUrl = backendBasedUrl;
 
@@ -37,9 +43,11 @@ function prepair(options) {
   if(options.req) delete options.req;
 }
 
-function promisifyRequest(options) {
+function promisifyRequest(options, requestObject) {
 
   return new Promise(resolve => request(options, (error, response, body) => {
+
+    logger.bindTo(requestObject);
 
     if(error) {
 
@@ -74,11 +82,13 @@ function promisifyRequest(options) {
  * @return {Promise<{Object}>} Promise of result object of the call if success, otherwise the error object
  */
 module.exports.get = (options) => {
+  const request = options.req;
+
   prepair(options);
 
-  logger.debug(`callBackend.js: UI calls backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
+  logger.bindTo(request).debug(`callBackend.js: UI calls backend API GET ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
-  return promisifyRequest(options);
+  return promisifyRequest(options, request);
 };
 
 /**
@@ -95,10 +105,12 @@ module.exports.get = (options) => {
  * @return {Promise<{Object}>} Promise of result object of the call if success, otherwise the error object
  */
 module.exports.post = (options) => {
+  const request = options.req;
+
   prepair(options);
   options.method = 'POST';
 
-  logger.debug(`callBackend.js: UI calls backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
+  logger.bindTo(request).debug(`callBackend.js: UI calls backend API POST ${options.baseUrl}${options.uri ? options.uri : options.url} with options=${JSON.stringify(options)}`);
 
-  return promisifyRequest(options);
+  return promisifyRequest(options, request);
 };
