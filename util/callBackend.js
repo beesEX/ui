@@ -1,5 +1,6 @@
 const http = require('http');
 const request = require('request');
+const requestNamespace = require('../config/requestNamespace');
 
 const {logger} = global;
 
@@ -26,7 +27,7 @@ function prepair(options) {
 
   if(options.req) {
 
-    options.headers[ 'X-Request-Id' ] = options.req.requestId;
+    options.headers[ 'X-Request-Id' ] = requestNamespace.get('requestId');
 
   }
 
