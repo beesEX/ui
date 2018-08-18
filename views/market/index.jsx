@@ -15,6 +15,7 @@ import LimitTradeForm from './LimitTradeForm';
 import OrderHistoryTable from './OrderHistoryTable';
 import AlertDialog from '../util/AlertDialog';
 import UpdateOrderDialog from './UpdateOrderDialog';
+import AggregatedOrderBookTable from './AggregatedOrderBookTable';
 
 class MarketContent extends React.Component {
 
@@ -111,8 +112,7 @@ class MarketContent extends React.Component {
             value === 'market' &&
             <div>
 
-              Market Form
-
+              <AggregatedOrderBookTable/>
             </div>
 
           }

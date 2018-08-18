@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/beesEX/ui.git"
   },
-  "author": "Vu, Duc Tung; Ho, Viet Anh; Ta, Hoang Lam; Le, Ngoc Son",
+  "author": "Vu, Duc Tung; Ho, Viet Anh; Ta, Lam Hoang; Le, Ngoc Son",
   "license": "MIT",
   "scripts": {
     "postinstall": "cp node_modules/react/umd/react.development.js public/js/lib && cp node_modules/react-dom/umd/react-dom.development.js public/js/lib && cp node_modules/popper.js/dist/popper.min.* public/js/lib && cp node_modules/bootstrap/dist/js/bootstrap.min.* public/js/lib && cp node_modules/jquery/dist/jquery.min.* public/js/lib && npm rebuild node-sass",

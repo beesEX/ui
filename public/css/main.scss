@@ -196,3 +196,33 @@ textarea {
 
   overflow: auto;
 }
+
+.aggregated-order-book-row {
+  position: relative;
+  margin: 2px 0;
+  .percent-filled {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+  }
+}
+
+.aggregated-table-asks {
+  .aggregated-price {
+    color: #f62bfa;
+  }
+  .aggregated-order-book-row .percent-filled {
+    background-color: rgba(#f62bfa, 0.5);
+  }
+}
+
+.aggregated-table-bids {
+  .aggregated-price {
+    color: #47fa75;
+  }
+  .aggregated-order-book-row .percent-filled {
+    background-color: rgba(#47fa75, 0.5);
+  }
+}
