@@ -46,25 +46,26 @@ function prepair(options) {
 
 function promisifyRequest(options) {
 
-  return new Promise(resolve => request(options, (error, response, body) => {
+  return new Promise((resolve, reject) => {
+    request(options, (error, response, body) => {
 
-    if(error) {
+      if(error) {
 
-      logger.debug(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(error)}`);
+        logger.debug(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(error)}`);
 
-      resolve(error);
+        reject(error);
 
-    }
-    else{
+      }
+      else{
 
-      logger.debug(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} was successful, result=${JSON.stringify(body)}`);
+        logger.debug(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} was successful, result=${JSON.stringify(body)}`);
 
-      resolve(body);
+        resolve(body);
 
-    }
+      }
 
-  }));
-
+    });
+  });
 }
 
 /**

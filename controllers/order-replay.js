@@ -7,20 +7,23 @@ exports.index = (req, res) => {
 };
 
 // GET /finance/status/:currency
-exports.financeStatus = async (req, res) => {
+exports.financeStatus = (req, res) => {
   logger.info(`order-replay.js financeStatus(): retrieves finance status of ${req.params.currency} ...`);
 
   const options = {
     uri: `/finance/status/${req.params.currency}`,
     req
   };
-  const financeStatus = await get(options);
-
-  res.json(financeStatus);
+  get(options).then((financeStatus) => {
+    res.json(financeStatus);
+  }).catch((err) => {
+    res.json(err);
+    res.status(500);
+  });
 };
 
 // POST /finance/deposit/:currency
-exports.depositFund = async (req, res) => {
+exports.depositFund = (req, res) => {
   logger.info(`order-replay.js depositFund(): deposit fund request of ${req.body.amount} ${req.params.currency} ...`);
 
   const options = {
@@ -31,7 +34,10 @@ exports.depositFund = async (req, res) => {
     },
     req
   };
-  const depositTX = await post(options);
-
-  res.json(depositTX);
+  post(options).then((depositTX) => {
+    res.json(depositTX);
+  }).catch((err) => {
+    res.json(err);
+    res.status(500);
+  });
 };
