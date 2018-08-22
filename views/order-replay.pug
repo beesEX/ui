@@ -1,34 +1,36 @@
 extends layout
 
 block content
-    .row
-        .col-lg-5
-            div
-                input#csrf(type='hidden', name='_csrf', value=_csrf)
-                select#side
-                    option(value="ask") ASK
-                    option(value="bid") BID
-                select#api
-                    option(value="wss://api.gemini.com/v1/marketdata/btcusd") wss://api.gemini.com/v1/marketdata/btcusd
-                button#controlBtn(onclick="toogleConnection()") connect
-            ul#orderList
-        .col-lg-7
-            div.clearfix
-                div.float-left
-                    label Currency:
-                    select#currency
-                        option(value="BTC") BTC
-                        option(value="USDT") USDT
-                    button#loadStatusBtn(onclick="loadFinanceStatus()") Refresh
-                dev.float-left(style="margin-right:10px;")
-                    label Balance:
-                    span#balance
-                dev.float-left
-                    label Available:
-                    span#available
-                dev.float-right
-                    label Deposit:
-                    input#amount(style="width:100px;")
-                    button#depositBtn(onclick="depositFund()") Deposit
-            dev#txList
-    script(src="/js/order-replay/index.js")
+  .row
+    .col-lg-5
+      div
+        div GEMINI
+        input#csrf(type='hidden', name='_csrf', value=_csrf)
+        select#side
+          option(value="ask") ASK
+          option(value="bid") BID
+        select#api
+          option(value="wss://api.gemini.com/v1/marketdata/btcusd") wss://api.gemini.com/v1/marketdata/btcusd
+          option(value="wss://ws-feed.gdax.com") wss://ws-feed.gdax.com
+        button#controlBtn(onclick="toogleConnection()") connect
+      ul#orderList
+    .col-lg-7
+      div.clearfix
+        div.float-left
+          label Currency:
+          select#currency
+            option(value="BTC") BTC
+            option(value="USDT") USDT
+          button#loadStatusBtn(onclick="loadFinanceStatus()") Refresh
+        dev.float-left(style="margin-right:10px;")
+          label Balance:
+          span#balance
+        dev.float-left
+          label Available:
+          span#available
+        dev.float-right
+          label Deposit:
+          input#amount(style="width:100px;")
+          button#depositBtn(onclick="depositFund()") Deposit
+      dev#txList
+  script(src="/js/order-replay/index.js")

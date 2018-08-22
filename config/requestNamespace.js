@@ -3,7 +3,7 @@
  * Created by Ngoc Son Le.
  */
 
-const {createNamespace} = require('continuation-local-storage');
+const {createNamespace} = require('cls-hooked');
 
 const namespace = createNamespace('request');
 
