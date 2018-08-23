@@ -122,7 +122,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public'), {maxAge: 31557600000}));
 app.use(requestUUIDGenerator);
 
-
+const {ROUTE_TO_MARKET_INDEX} = require('./config/routeDictionary');
 /**
  * public routes, no authentication required
  */
@@ -157,7 +157,7 @@ app.post('/finance/deposit/:currency', passportConfig.isAuthenticated, orderRepl
  * market
  */
 
-app.get('/market/:symbol', passportConfig.isAuthenticated, marketController.index);
+app.get(ROUTE_TO_MARKET_INDEX, passportConfig.isAuthenticated, marketController.index);
 
 /**
  * order
@@ -188,24 +188,9 @@ app.get('/testWebSocket', (req, res) => {
 
 const webSocketServer = new WebSocketServer(process.env.WEB_SOCKET_SERVER_PORT);
 
-
 webSocketServer.start().then(() => {
 
-  let i = 0;
-
-  const setIntervalAction = setInterval(() => {
-
-    webSocketServer.broadcast(`Hello World ${i++}`);
-
-  }, 1000);
-
-  setTimeout(() => {
-
-    clearInterval(setIntervalAction);
-
-    webSocketServer.stop();
-
-  }, 100 * 1000); // 100s
+  marketController.handleOrderBookStateChangeEvent(webSocketServer);
 
 });
 

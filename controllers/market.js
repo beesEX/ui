@@ -9,6 +9,8 @@ const requestToBackEnd = require('../util/callBackend');
 
 const {logger} = global;
 
+const {ROUTE_TO_MARKET_INDEX} = require('../config/routeDictionary');
+
 /**
  * Call GET /market/aggregatedOrderBook/:currency-:baseCurrency on Backend to get the current aggregated state of the
  * orderbook.
@@ -46,7 +48,8 @@ exports.index = (req, res) => {
 
   const arrayOfCurrencies = req.params.symbol.split('_');
 
-  [ req.params.currency, req.params.baseCurrency ] = arrayOfCurrencies;
+  [req.params.currency,
+    req.params.baseCurrency] = arrayOfCurrencies;
 
   const limit = 10;
 
@@ -66,11 +69,12 @@ exports.index = (req, res) => {
 
   const aggregatedOrderBookPromise = getAggregatedOrderBook(req);
 
-  Promise.all([ ordersPromise, aggregatedOrderBookPromise ]).then((arrayOfResponses) => {
+  Promise.all([ordersPromise,
+    aggregatedOrderBookPromise]).then((arrayOfResponses) => {
 
-    const dataFromOrdersPromise = arrayOfResponses[ 0 ];
+    const dataFromOrdersPromise = arrayOfResponses[0];
 
-    const dataFromAggregatedOrderBookPromise = arrayOfResponses[ 1 ];
+    const dataFromAggregatedOrderBookPromise = arrayOfResponses[1];
 
     let errorOccurred = false;
 
@@ -148,3 +152,51 @@ exports.index = (req, res) => {
   });
 
 };
+
+
+const supportedCurrencies = require('../util/SupportedCurrencies');
+
+const subscribe = require('../util/zeroMQSubscriber');
+
+const arrayOfSockets = [];
+
+const prefix = 'Orderbook';
+
+
+exports.handleOrderBookStateChangeEvent = (websocket) => {
+
+  const arrayOfSymbols = [];
+
+  for(let i = 0; i < supportedCurrencies.length; i++) {
+
+    const firstCurrency = supportedCurrencies[i];
+
+    for(let j = i + 1; j < supportedCurrencies.length; j++) {
+
+      const secondCurrency = supportedCurrencies[j];
+
+      arrayOfSymbols[0] = `${firstCurrency}_${secondCurrency}`;
+
+      arrayOfSymbols[1] = `${secondCurrency}_${firstCurrency}`;
+
+      arrayOfSymbols.forEach((symbol) => {
+
+        const requestedPath = ROUTE_TO_MARKET_INDEX.replace(':symbol', symbol);
+
+        const topic = `${prefix}-${symbol}`;
+
+        const socket = subscribe(topic, (message) => {
+
+          websocket.broadcast(message, requestedPath);
+
+        });
+
+        arrayOfSockets.push(socket);
+
+      });
+
+    }
+
+  }
+};
+

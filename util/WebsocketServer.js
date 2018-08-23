@@ -109,7 +109,6 @@ function WebSocketServer(port) {
 
   };
 
-
   this.start = async () => new Promise((resolve, reject) => {
 
     server.listen(port, (error) => {
@@ -130,7 +129,6 @@ function WebSocketServer(port) {
     });
 
   });
-
 
   this.stop = async () => new Promise((resolve, reject) => {
 
@@ -154,7 +152,6 @@ function WebSocketServer(port) {
 
   });
 
-
   /**
    * Server broadcasts a `message` to all clients with specific `requestedPath`
    * If `requestedPath` is null,  all clients will receive the `message`
@@ -163,6 +160,8 @@ function WebSocketServer(port) {
    * @param requestedPath
    */
   this.broadcast = (message, requestedPath) => {
+
+    logger.debug(`broadcast message: ${message}`);
 
     instance.clients.forEach((client) => {
 

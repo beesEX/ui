@@ -5,7 +5,7 @@
 
 const zeroMQ = require('zeromq');
 
-const { logger } = global;
+const {logger} = global;
 
 function subscribe(topic, callback) {
 
@@ -17,7 +17,9 @@ function subscribe(topic, callback) {
 
   logger.info(`subscribe to topic ${topic}`);
 
-  socket.on('message', (topic, message) => {
+  socket.on('message', (topic, binaryMessage) => {
+
+    const message = `${binaryMessage}`;
 
     logger.debug(`message of topic ${topic} from zeroMQ received: ${message}`);
 
@@ -25,6 +27,7 @@ function subscribe(topic, callback) {
 
   });
 
+  return socket;
 }
 
 module.exports = subscribe;
