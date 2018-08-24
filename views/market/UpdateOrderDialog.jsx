@@ -7,9 +7,9 @@ import TwoButtonsDialog from '../util/TwoButtonsDialog';
 import LimitTradeForm from './LimitTradeForm';
 import DialogContent from '@material-ui/core/DialogContent';
 
-export default class UpdateOrderDialog extends TwoButtonsDialog {
+export default class UpdateOrderDialog extends TwoButtonsDialog{
 
-  constructor(props){
+  constructor(props) {
 
     super(props);
 
@@ -27,7 +27,7 @@ export default class UpdateOrderDialog extends TwoButtonsDialog {
 
     let baseCurrency = 'USD';
 
-    if(this.state.order){
+    if(this.state.order) {
 
       action = this.state.order.side;
 
@@ -35,14 +35,14 @@ export default class UpdateOrderDialog extends TwoButtonsDialog {
 
       currency = this.state.order.currency;
 
-      if(action === 'BUY'){
+      if(action === 'BUY') {
 
-        balance = this.props.baseCurrencyBalance
+        balance = this.props.baseCurrencyAvailableBalance;
 
       }
       else{
 
-        balance = this.props.currencyBalance
+        balance = this.props.currencyAvailableBalance;
 
       }
 
@@ -60,6 +60,8 @@ export default class UpdateOrderDialog extends TwoButtonsDialog {
           orderHistoryTable={this.props.orderHistoryTable}
           currency={currency}
           baseCurrency={baseCurrency}
+          onError={this.disableOkButton}
+          onValid={this.enableOkButton}
 
         />
 
@@ -73,7 +75,7 @@ export default class UpdateOrderDialog extends TwoButtonsDialog {
 
     return this.formRef;
 
-  }
+  };
 
   setOrder = (order) => {
 
@@ -81,8 +83,8 @@ export default class UpdateOrderDialog extends TwoButtonsDialog {
 
       order: order
 
-    })
+    });
 
-  }
+  };
 }
 

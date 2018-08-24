@@ -38,8 +38,67 @@ async function getAggregatedOrderBook(req) {
 
   }
 
-  return Promise.reject(new Error('Url for getting aggragated state of order book on back end do not exist in process.env'));
+  return Promise.reject(new Error('Url for getting aggregated state of order book on the back end server does not exist in process.env'));
 
+}
+
+async function getAvailableBalance(req, currency) {
+
+  logger.debug(`get balance from back end with params: currency = ${currency}`);
+
+  if(process.env.BACKEND_USER_AVAILABLE_BALANCE) {
+
+    const url = process.env.BACKEND_USER_AVAILABLE_BALANCE.replace(':currency', currency);
+
+    const options = {
+
+      url,
+
+      req
+
+    };
+
+    return requestToBackEnd.get(options);
+
+  }
+
+  return Promise.reject(new Error('Url for getting balance from the back end server does not exist in process.env'));
+
+}
+
+function getErrorFromData(data, ...errorTypes) {
+
+  if(data instanceof Error) {
+
+    return {msg: data.message};
+
+  }
+
+  if(data.error) {
+
+    return {msg: data.error.message};
+
+  }
+
+  let errorObject;
+
+  if(errorTypes) {
+
+    for(let i = 0; i < errorTypes.length; i++) {
+
+      const errorType = errorTypes[i];
+
+      if(typeof data === errorType) {
+
+        errorObject = {msg: data};
+
+        break;
+
+      }
+    }
+  }
+
+  return errorObject;
 }
 
 exports.index = (req, res) => {
@@ -69,52 +128,29 @@ exports.index = (req, res) => {
 
   const aggregatedOrderBookPromise = getAggregatedOrderBook(req);
 
+  const currencyAvailableBalancePromise = getAvailableBalance(req, req.params.currency);
+
+  const basecurrencyAvailableBalancePromise = getAvailableBalance(req, req.params.baseCurrency);
+
   Promise.all([ordersPromise,
-    aggregatedOrderBookPromise]).then((arrayOfResponses) => {
-
-    const dataFromOrdersPromise = arrayOfResponses[0];
-
-    const dataFromAggregatedOrderBookPromise = arrayOfResponses[1];
+    aggregatedOrderBookPromise,
+    currencyAvailableBalancePromise,
+    basecurrencyAvailableBalancePromise]).then((arrayOfResponses) => {
 
     let errorOccurred = false;
 
-    if(dataFromOrdersPromise instanceof Error) {
+    arrayOfResponses.forEach((data) => {
 
-      req.flash('errors', {msg: dataFromOrdersPromise.message});
+      const errorObject = getErrorFromData(data, 'string');
 
-      errorOccurred = true;
+      if(errorObject) {
 
-    }
-    else if(dataFromOrdersPromise.error) {
+        errorOccurred = true;
 
-      req.flash('errors', {msg: dataFromOrdersPromise.error.message});
+        req.flash('errors', errorObject);
 
-      errorOccurred = true;
-
-    }
-
-    if(typeof dataFromAggregatedOrderBookPromise === 'string') {
-
-      req.flash('errors', {msg: dataFromAggregatedOrderBookPromise});
-
-      errorOccurred = true;
-
-    }
-    else if(dataFromAggregatedOrderBookPromise.error) {
-
-      req.flash('errors', {msg: dataFromAggregatedOrderBookPromise.error.message});
-
-      errorOccurred = true;
-
-    }
-    else if(dataFromAggregatedOrderBookPromise instanceof Error) {
-
-      req.flash('errors', {msg: dataFromAggregatedOrderBookPromise.message});
-
-      errorOccurred = true;
-
-    }
-
+      }
+    });
 
     if(errorOccurred) {
 
@@ -123,6 +159,14 @@ exports.index = (req, res) => {
       res.render('market', data);
     }
     else{
+
+      const dataFromOrdersPromise = arrayOfResponses[0];
+
+      const dataFromAggregatedOrderBookPromise = arrayOfResponses[1];
+
+      const dataFromCurrencyAvailableBalancePromise = arrayOfResponses[2];
+
+      const dataFrombaseCurrencyAvailableBalancePromise = arrayOfResponses[3];
 
       const data = dataFromOrdersPromise;
 
@@ -134,7 +178,11 @@ exports.index = (req, res) => {
 
       data.title = 'Market';
 
-      data.aggregatedState = dataFromAggregatedOrderBookPromise;
+      data.aggregatedOrderBookState = dataFromAggregatedOrderBookPromise;
+
+      data.currencyAvailableBalance = dataFromCurrencyAvailableBalancePromise;
+
+      data.baseCurrencyAvailableBalance = dataFrombaseCurrencyAvailableBalancePromise;
 
       res.render('market', data);
 

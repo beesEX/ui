@@ -8,7 +8,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
 
-export default class TwoButtonsDialog extends React.Component {
+export default class TwoButtonsDialog extends React.Component{
 
   constructor(props) {
 
@@ -18,7 +18,9 @@ export default class TwoButtonsDialog extends React.Component {
 
       open: false,
 
-      onOkClick: undefined
+      onOkClick: undefined,
+
+      okButtonDisabled: false
 
     };
 
@@ -26,7 +28,7 @@ export default class TwoButtonsDialog extends React.Component {
 
   shouldComponentUpdate = (nextProps, nextState) => {
 
-    if(nextState.open !== this.state.open) {
+    if(nextState.open !== this.state.open || nextState.okButtonDisabled != this.state.okButtonDisabled) {
 
       return true;
 
@@ -45,6 +47,25 @@ export default class TwoButtonsDialog extends React.Component {
     });
   };
 
+  disableOkButton = () => {
+
+    this.setState({
+
+      okButtonDisabled: true
+
+    });
+
+  };
+
+  enableOkButton = () => {
+
+    this.setState({
+
+      okButtonDisabled: false
+
+    });
+  };
+
   createCloseHandler = (action) => {
 
     if(action === 'cancel') {
@@ -53,7 +74,9 @@ export default class TwoButtonsDialog extends React.Component {
 
         this.setState({
 
-          open: false
+          open: false,
+
+          okButtonDisabled: false
 
         });
 
@@ -90,7 +113,7 @@ export default class TwoButtonsDialog extends React.Component {
 
     return (
 
-      <div></div>
+      <div/>
 
     );
 
@@ -114,17 +137,25 @@ export default class TwoButtonsDialog extends React.Component {
 
         <DialogTitle>{this.props.title}</DialogTitle>
 
-        { this.renderDialogContent()}
+        {this.renderDialogContent()}
 
         <DialogActions>
 
-          <Button onClick={this.createCloseHandler('cancel')} color="secondary" autoFocus>
+          <Button
+            onClick={this.createCloseHandler('cancel')}
+            color='secondary'
+            autoFocus
+          >
 
             {this.props.cancelButtonText || 'Cancel'}
 
           </Button>
 
-          <Button onClick={this.createCloseHandler('ok')} color="primary">
+          <Button
+            onClick={this.createCloseHandler('ok')}
+            color='primary'
+            disabled={this.state.okButtonDisabled}
+          >
 
             {this.props.okButtonText || 'OK'}
 

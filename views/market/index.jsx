@@ -17,7 +17,7 @@ import AlertDialog from '../util/AlertDialog';
 import UpdateOrderDialog from './UpdateOrderDialog';
 import AggregatedOrderBookTable from './AggregatedOrderBookTable';
 
-class MarketContent extends React.Component {
+class MarketContent extends React.Component{
 
   constructor(props) {
 
@@ -39,19 +39,22 @@ class MarketContent extends React.Component {
 
   changeTab = (event, value) => {
 
-    this.setState({ value });
+    this.setState({value});
 
   };
 
   render() {
 
-    const { value } = this.state;
+    const {value} = this.state;
 
     return (
 
       <div>
 
-        <Typography variant="headline" gutterBottom>
+        <Typography
+          variant='headline'
+          gutterBottom
+        >
 
           {this.props.currency}/{this.props.baseCurrency}
 
@@ -63,14 +66,20 @@ class MarketContent extends React.Component {
 
           <Tabs
             value={value}
-            indicatorColor="primary"
-            textColor="primary"
+            indicatorColor='primary'
+            textColor='primary'
             onChange={this.changeTab}
           >
 
-            <Tab value={'limit'} label={'Limit'}/>
+            <Tab
+              value={'limit'}
+              label={'Limit'}
+            />
 
-            <Tab value={'market'} label={'Market'}/>
+            <Tab
+              value={'market'}
+              label={'Market'}
+            />
 
           </Tabs>
 
@@ -78,12 +87,19 @@ class MarketContent extends React.Component {
 
             value === 'limit' &&
 
-            <Grid container className={'market-form-container'}>
+            <Grid
+              container
+              className={'market-form-container'}
+            >
 
-              <Grid item xs={6} className={'market-form-buy-part'}>
+              <Grid
+                item
+                xs={6}
+                className={'market-form-buy-part'}
+              >
 
                 <LimitTradeForm
-                  balance={100}
+                  balance={this.props.baseCurrencyAvailableBalance}
                   baseCurrency={window.market.baseCurrency}
                   currency={window.market.currency}
                   action={'BUY'}
@@ -92,10 +108,14 @@ class MarketContent extends React.Component {
 
               </Grid>
 
-              <Grid item xs={6} className={'market-form-sell-part'}>
+              <Grid
+                item
+                xs={6}
+                className={'market-form-sell-part'}
+              >
 
                 <LimitTradeForm
-                  balance={10}
+                  balance={this.props.currencyAvailableBalance}
                   baseCurrency={window.market.baseCurrency}
                   currency={window.market.currency}
                   action={'SELL'}
@@ -119,7 +139,11 @@ class MarketContent extends React.Component {
 
         </Paper>
 
-        <Typography className={'orderHistoryHeadline'} variant="headline" gutterBottom>
+        <Typography
+          className={'orderHistoryHeadline'}
+          variant='headline'
+          gutterBottom
+        >
 
           {'Order History'}
 
@@ -146,8 +170,8 @@ class MarketContent extends React.Component {
 
         <UpdateOrderDialog
           fullWidth={true}
-          currencyBalance={10}
-          baseCurrencyBalance={100}
+          currencyAvailableBalance={this.props.currencyAvailableBalance}
+          baseCurrencyAvailableBalance={this.props.baseCurrencyAvailableBalance}
           ref={this.updateOrderDialog}
           title={'Update Order'}
           orderHistoryTable={this.tableRef}
@@ -160,6 +184,11 @@ class MarketContent extends React.Component {
   }
 }
 
-ReactDOM.render(<MarketContent currency={window.market.currency}
-                               baseCurrency={window.market.baseCurrency}/>, document.getElementById('market-content'));
+ReactDOM.render(<MarketContent
+    currency={window.market.currency}
+    currencyAvailableBalance={window.market.currencyAvailableBalance}
+    baseCurrency={window.market.baseCurrency}
+    baseCurrencyAvailableBalance={window.market.baseCurrencyAvailableBalance}
+  />,
+  document.getElementById('market-content'));
 

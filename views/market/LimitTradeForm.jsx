@@ -27,6 +27,8 @@ function getDefaultState(props) {
 
   let quantityError = true;
 
+  let filled;
+
   if(props.order) {
 
     priceValue = props.order.limitPrice;
@@ -36,6 +38,8 @@ function getDefaultState(props) {
     quantityValue = props.order.quantity;
 
     quantityError = false;
+
+    filled = props.order.filledQuantity;
 
   }
 
@@ -59,6 +63,8 @@ function getDefaultState(props) {
 
       error: quantityError,
 
+      filled,
+
       helperText: (props.action === 'SELL') ? `Input quantity between 0 und ${props.balance}` : 'Input quantity equal or greater than 0',
 
       errorText: (props.action === 'SELL') ? `Quantity has to be a number between 0 and ${props.balance}` : 'Quantity has to be a number equal or greater than 0'
@@ -68,7 +74,7 @@ function getDefaultState(props) {
   };
 }
 
-export default class LimitTradeForm extends React.Component {
+export default class LimitTradeForm extends React.Component{
 
   constructor(props) {
 
@@ -84,9 +90,9 @@ export default class LimitTradeForm extends React.Component {
 
     const newValue = parseFloat(event.target.value);
 
-    const objectToUpdate = Object.assign({}, this.state[ propertyName ]);
+    const objectToUpdate = Object.assign({}, this.state[propertyName]);
 
-    newState[ propertyName ] = objectToUpdate;
+    newState[propertyName] = objectToUpdate;
 
     objectToUpdate.value = newValue;
 
@@ -123,7 +129,20 @@ export default class LimitTradeForm extends React.Component {
 
       if(propertyName === 'quantity') {
 
-        if(this.props.action === 'SELL' && newValue > this.props.balance) {
+        if(this.state.quantity.filled != undefined) {
+
+          if(newValue < this.state.quantity.filled) {
+
+            objectToUpdate.error = true;
+
+            objectToUpdate.errorText = `Quantity can not be smaller then the already filled amount ${this.state.quantity.filled}`;
+
+            noError = false;
+
+          }
+
+        }
+        else if(this.props.action === 'SELL' && newValue > this.props.balance) {
 
           objectToUpdate.error = true;
 
@@ -135,13 +154,20 @@ export default class LimitTradeForm extends React.Component {
 
       }
 
-      if(noError) {
+    }
 
-        objectToUpdate.error = false;
+    if(noError) {
 
-        objectToUpdate.errorText = '';
+      objectToUpdate.error = false;
 
-      }
+      objectToUpdate.errorText = '';
+
+      this.props.onValid && this.props.onValid();
+
+    }
+    else{
+
+      this.props.onError && this.props.onError();
 
     }
 
@@ -167,64 +193,64 @@ export default class LimitTradeForm extends React.Component {
 
     const jsonToSend = order.toJSON();
 
-    ajax('POST', '/order/place', jsonToSend)
-      .then(
-        (responseText) => {
+    ajax('POST', '/order/place', jsonToSend).then(
+      (responseText) => {
 
-          const responseObject = JSON.parse(responseText);
+        const responseObject = JSON.parse(responseText);
 
-          if(responseObject.errors) {
+        if(responseObject.errors) {
 
-            const errors = responseObject.errors;
+          const errors = responseObject.errors;
 
-            if(typeof errors === 'object') {
+          if(typeof errors === 'object') {
 
-              let newState = {};
+            let newState = {};
 
-              const propertyNames = [ 'price', 'quantity' ];
+            const propertyNames = ['price',
+              'quantity'];
 
-              let objectToUpdate;
+            let objectToUpdate;
 
-              for(const propertyName of propertyNames) {
+            for(const propertyName of propertyNames) {
 
-                if(errors[ propertyName ]) {
+              if(errors[propertyName]) {
 
-                  objectToUpdate = Object.assign({}, this.state[ propertyName ]);
+                objectToUpdate = Object.assign({}, this.state[propertyName]);
 
-                  objectToUpdate.error = true;
+                objectToUpdate.error = true;
 
-                  objectToUpdate.errorText = errors[ propertyName ];
+                objectToUpdate.errorText = errors[propertyName];
 
-                  newState[ propertyName ] = objectToUpdate;
-
-                }
-
+                newState[propertyName] = objectToUpdate;
 
               }
 
-              this.setState(newState);
-
-            }
-          }
-          else if(responseObject.createdOrder && this.props.orderHistoryTable) {
-
-            if(this.props.orderHistoryTable.current) {
-
-              this.props.orderHistoryTable.current.push(responseObject.createdOrder);
 
             }
 
-            this.setState(getDefaultState(this.props));
+            this.setState(newState);
 
           }
+        }
+        else if(responseObject.createdOrder && this.props.orderHistoryTable) {
+
+          if(this.props.orderHistoryTable.current) {
+
+            this.props.orderHistoryTable.current.push(responseObject.createdOrder);
+
+          }
+
+          this.setState(getDefaultState(this.props));
 
         }
-        ,
-        (errorText) => {
 
-          console.log(errorText);
+      }
+      ,
+      (errorText) => {
 
-        });
+        console.log(errorText);
+
+      });
   };
 
   renderButton = (text, color, totalErrorText) => {
@@ -235,17 +261,45 @@ export default class LimitTradeForm extends React.Component {
 
       return (
 
-        <Button variant="contained"
-                color={color}
-                disabled={this.state.price.error || this.state.quantity.error || totalErrorText.length > 0}
-                className={'market-form-submit-button'}
-                onClick={this.submit}
+        <Button
+          variant='contained'
+          color={color}
+          disabled={this.state.price.error || this.state.quantity.error || totalErrorText.length > 0}
+          className={'market-form-submit-button'}
+          onClick={this.submit}
         >
 
           {text}
 
         </Button>
 
+      );
+
+    }
+
+  };
+
+  renderFilledQuantity = (idPrefix) => {
+
+    if(this.state.quantity.filled != undefined) {
+
+      return (
+
+        <FormControl className={'market-input'}>
+
+          <InputLabel
+            required
+            htmlFor={`${idPrefix}-filled-quantity`}
+            className={'market-input-label'}
+          >Filled Quantity</InputLabel>
+
+          <Input
+            id={`${idPrefix}-filled-quantity`}
+            value={Number.isNaN(this.state.quantity.filled) ? '' : this.state.quantity.filled}
+            type={'number'}
+            disabled={true}
+          />
+        </FormControl>
       );
 
     }
@@ -323,31 +377,49 @@ export default class LimitTradeForm extends React.Component {
 
     return (
 
-      <Grid container direction={'column'}>
+      <Grid
+        container
+        direction={'column'}
+      >
 
         <Grid item>
 
           <Grid container>
 
-            <Grid item xs={6}>
+            <Grid
+              item
+              xs={6}
+            >
 
-              <Typography variant="title" gutterBottom>{buttonText}</Typography>
+              <Typography
+                variant='title'
+                gutterBottom
+              >{buttonText}</Typography>
 
             </Grid>
 
-            <Grid item xs={1}>
+            <Grid
+              item
+              xs={1}
+            >
 
               <Icon>account_balance</Icon>
 
             </Grid>
 
-            <Grid item xs={4}>
+            <Grid
+              item
+              xs={4}
+            >
 
               <Typography>{this.props.balance}</Typography>
 
             </Grid>
 
-            <Grid item xs={1}>
+            <Grid
+              item
+              xs={1}
+            >
 
               <Typography align={'right'}>{balanceCurrency}</Typography>
 
@@ -359,16 +431,23 @@ export default class LimitTradeForm extends React.Component {
 
         <FormControl className={'market-input'}>
 
-          <InputLabel required htmlFor={`${idPrefix}-price`}
-                      className={'market-input-label'}>Preis</InputLabel>
+          <InputLabel
+            required
+            htmlFor={`${idPrefix}-price`}
+            className={'market-input-label'}
+          >Preis</InputLabel>
 
           <Input
             id={`${idPrefix}-price`}
             value={Number.isNaN(this.state.price.value) ? '' : this.state.price.value}
             type={'number'}
             onChange={this.createChangeHandler('price')}
-            endAdornment={<InputAdornment
-              position="end">{this.props.baseCurrency}</InputAdornment>}
+            endAdornment={
+              <InputAdornment
+                position='end'
+              >
+                {this.props.baseCurrency}
+              </InputAdornment>}
             inputProps={{
               'aria-label': 'Price',
               'min': 0,
@@ -386,15 +465,18 @@ export default class LimitTradeForm extends React.Component {
 
         <FormControl className={'market-input'}>
 
-          <InputLabel required htmlFor={`${idPrefix}-quantity`}
-                      className={'market-input-label'}>Betrag</InputLabel>
+          <InputLabel
+            required
+            htmlFor={`${idPrefix}-quantity`}
+            className={'market-input-label'}
+          >Betrag</InputLabel>
 
           <Input
             id={`${idPrefix}-quantity`}
             value={Number.isNaN(this.state.quantity.value) ? '' : this.state.quantity.value}
             type={'number'}
             onChange={this.createChangeHandler('quantity')}
-            endAdornment={<InputAdornment position="end">{this.props.currency}</InputAdornment>}
+            endAdornment={<InputAdornment position='end'>{this.props.currency}</InputAdornment>}
             inputProps={{
               'aria-label': 'Quantity',
               'min': 0,
@@ -408,18 +490,21 @@ export default class LimitTradeForm extends React.Component {
             {this.state.quantity.error ? this.state.quantity.errorText : this.state.quantity.helperText}
 
           </FormHelperText>
-
         </FormControl>
+
+        {this.renderFilledQuantity(idPrefix)}
 
         <FormControl className={'market-total-input'}>
 
-          <InputLabel htmlFor={`${idPrefix}-total`}
-                      className={'market-input-label'}>Total</InputLabel>
+          <InputLabel
+            htmlFor={`${idPrefix}-total`}
+            className={'market-input-label'}
+          >Total</InputLabel>
 
           <Input
             id={`${idPrefix}-total`}
             value={Number.isNaN(total) ? '' : total}
-            endAdornment={<InputAdornment position="end">{this.props.baseCurrency}</InputAdornment>}
+            endAdornment={<InputAdornment position='end'>{this.props.baseCurrency}</InputAdornment>}
             inputProps={{
               'aria-label': 'Total',
               'readOnly': 'true'
@@ -427,7 +512,8 @@ export default class LimitTradeForm extends React.Component {
           />
 
           <FormHelperText
-            error={this.state.price.error || this.state.quantity.error || (totalErrorText.length > 0)}>
+            error={this.state.price.error || this.state.quantity.error || (totalErrorText.length > 0)}
+          >
 
             {totalErrorText || totalHelperText}
 
@@ -438,7 +524,9 @@ export default class LimitTradeForm extends React.Component {
         {this.renderButton(buttonText, buttonColor, totalErrorText)}
 
       </Grid>
+
     );
+
   }
 
 }

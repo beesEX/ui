@@ -3,17 +3,19 @@ extends ../layout
 block content
   div#market-content
   - if (currency && baseCurrency)
-      script
-        != 'window.market = {};\n'
-        != `window.market.currency = '${currency}';\n`
-        != `window.market.baseCurrency = '${baseCurrency}';\n`
-        if (orders instanceof Array)
-          - var ordersString = JSON.stringify(orders)
-          != `window.market.orders = ${ordersString};\n`
-          != `window.market.count = ${count || 0};\n`
-          != `window.market.limit = ${limit || 0};\n`
-        if(aggregatedOrderBookState)
-          - var aggregatedOrderBookStateString = JSON.stringify(aggregatedOrderBookState)
-          != `window.market.aggregatedOrderBookState = ${aggregatedOrderBookStateString};\n`
-          != 'console.log(window.market.aggregatedOrderBookState);\n'
-      script(src='/js/market/market.js')
+    script
+      != 'window.market = {};\n'
+      != `window.market.currency = '${currency}';\n`
+      != `window.market.baseCurrency = '${baseCurrency}';\n`
+      if (orders instanceof Array)
+        - var ordersString = JSON.stringify(orders)
+        != `window.market.orders = ${ordersString};\n`
+        != `window.market.count = ${count || 0};\n`
+        != `window.market.limit = ${limit || 0};\n`
+      if(aggregatedOrderBookState)
+        - var aggregatedOrderBookStateString = JSON.stringify(aggregatedOrderBookState)
+        != `window.market.aggregatedOrderBookState = ${aggregatedOrderBookStateString};\n`
+        != 'console.log(window.market.aggregatedOrderBookState);\n'
+      != `window.market.currencyAvailableBalance = ${currencyAvailableBalance || 0};\n`
+      != `window.market.baseCurrencyAvailableBalance = ${baseCurrencyAvailableBalance || 0};\n`
+  script(src='/js/market/market.js')
