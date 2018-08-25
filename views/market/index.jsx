@@ -48,137 +48,144 @@ class MarketContent extends React.Component{
     const {value} = this.state;
 
     return (
+      <React.Fragment>
+        <Grid container spacing={16}>
+          <Grid item xs={8}>
 
-      <div>
-
-        <Typography
-          variant='headline'
-          gutterBottom
-        >
-
-          {this.props.currency}/{this.props.baseCurrency}
-
-        </Typography>
-
-        <hr/>
-
-        <Paper>
-
-          <Tabs
-            value={value}
-            indicatorColor='primary'
-            textColor='primary'
-            onChange={this.changeTab}
-          >
-
-            <Tab
-              value={'limit'}
-              label={'Limit'}
-            />
-
-            <Tab
-              value={'market'}
-              label={'Market'}
-            />
-
-          </Tabs>
-
-          {
-
-            value === 'limit' &&
-
-            <Grid
-              container
-              className={'market-form-container'}
+            <Typography
+              variant='headline'
+              gutterBottom
             >
 
-              <Grid
-                item
-                xs={6}
-                className={'market-form-buy-part'}
+              {this.props.currency}/{this.props.baseCurrency}
+
+            </Typography>
+
+            <hr/>
+
+            <Paper>
+
+              <Tabs
+                value={value}
+                indicatorColor='primary'
+                textColor='primary'
+                onChange={this.changeTab}
               >
 
-                <LimitTradeForm
-                  balance={this.props.baseCurrencyAvailableBalance}
-                  baseCurrency={window.market.baseCurrency}
-                  currency={window.market.currency}
-                  action={'BUY'}
-                  orderHistoryTable={this.tableRef}
+                <Tab
+                  value={'limit'}
+                  label={'Limit'}
                 />
 
-              </Grid>
-
-              <Grid
-                item
-                xs={6}
-                className={'market-form-sell-part'}
-              >
-
-                <LimitTradeForm
-                  balance={this.props.currencyAvailableBalance}
-                  baseCurrency={window.market.baseCurrency}
-                  currency={window.market.currency}
-                  action={'SELL'}
-                  orderHistoryTable={this.tableRef}
+                <Tab
+                  value={'market'}
+                  label={'Market'}
                 />
 
-              </Grid>
+              </Tabs>
 
-            </Grid>
+              {
 
-          }
+                value === 'limit' &&
 
-          {
-            value === 'market' &&
-            <div>
+                <Grid
+                  container
+                  className={'market-form-container'}
+                >
 
-              <AggregatedOrderBookTable/>
-            </div>
+                  <Grid
+                    item
+                    xs={6}
+                    className={'market-form-buy-part'}
+                  >
 
-          }
+                    <LimitTradeForm
+                      balance={this.props.baseCurrencyAvailableBalance}
+                      baseCurrency={window.market.baseCurrency}
+                      currency={window.market.currency}
+                      action={'BUY'}
+                      orderHistoryTable={this.tableRef}
+                    />
 
-        </Paper>
+                  </Grid>
 
-        <Typography
-          className={'orderHistoryHeadline'}
-          variant='headline'
-          gutterBottom
-        >
+                  <Grid
+                    item
+                    xs={6}
+                    className={'market-form-sell-part'}
+                  >
 
-          {'Order History'}
+                    <LimitTradeForm
+                      balance={this.props.currencyAvailableBalance}
+                      baseCurrency={window.market.baseCurrency}
+                      currency={window.market.currency}
+                      action={'SELL'}
+                      orderHistoryTable={this.tableRef}
+                    />
 
-        </Typography>
+                  </Grid>
 
-        <hr/>
+                </Grid>
 
-        <OrderHistoryTable
-          ref={this.tableRef}
-          orders={window.market.orders}
-          count={window.market.count}
-          rowPerPage={window.market.limit}
-          alertDialog={this.alertDialogRef}
-          updateOrderDialog={this.updateOrderDialog}
-          baseCurrency={window.market.baseCurrency}
-          currency={window.market.currency}
-        />
+              }
 
-        <AlertDialog
-          ref={this.alertDialogRef}
-          title={'Delete'}
-          message={'Do you want to delete this order'}
-        />
+              {
+                value === 'market' &&
+                <div>
+                  Market Form
+                </div>
 
-        <UpdateOrderDialog
-          fullWidth={true}
-          currencyAvailableBalance={this.props.currencyAvailableBalance}
-          baseCurrencyAvailableBalance={this.props.baseCurrencyAvailableBalance}
-          ref={this.updateOrderDialog}
-          title={'Update Order'}
-          orderHistoryTable={this.tableRef}
-        />
+              }
 
+            </Paper>
+          </Grid>
+          <Grid item xs={4}>
+            <AggregatedOrderBookTable/>
+          </Grid>
+        </Grid>
+        <React.Fragment>
 
-      </div>
+            <Typography
+              className={'orderHistoryHeadline'}
+              variant='headline'
+              gutterBottom
+            >
+
+              {'Order History'}
+
+            </Typography>
+
+            <hr/>
+
+            <OrderHistoryTable
+              ref={this.tableRef}
+              orders={window.market.orders}
+              count={window.market.count}
+              rowPerPage={window.market.limit}
+              alertDialog={this.alertDialogRef}
+              updateOrderDialog={this.updateOrderDialog}
+              baseCurrency={window.market.baseCurrency}
+              currency={window.market.currency}
+            />
+
+            <AlertDialog
+              ref={this.alertDialogRef}
+              title={'Delete'}
+              message={'Do you want to delete this order'}
+            />
+
+            <UpdateOrderDialog
+              fullWidth={true}
+              currencyAvailableBalance={this.props.currencyAvailableBalance}
+              baseCurrencyAvailableBalance={this.props.baseCurrencyAvailableBalance}
+              ref={this.updateOrderDialog}
+              title={'Update Order'}
+              orderHistoryTable={this.tableRef}
+            />
+        </React.Fragment>
+
+      </React.Fragment>
+
 
     );
   }

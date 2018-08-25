@@ -200,6 +200,9 @@ textarea {
 .aggregated-order-book-row {
   position: relative;
   margin: 2px 0;
+  & > div {
+    overflow: hidden;
+  }
   .percent-filled {
     content: '';
     position: absolute;
@@ -210,6 +213,8 @@ textarea {
 }
 
 .aggregated-table-asks {
+  margin-bottom: 24px;
+
   .aggregated-price {
     color: #f62bfa;
   }
@@ -219,6 +224,7 @@ textarea {
 }
 
 .aggregated-table-bids {
+
   .aggregated-price {
     color: #47fa75;
   }
