@@ -11,6 +11,8 @@ const {logger} = global;
 
 const {ROUTE_TO_MARKET_INDEX} = require('../config/routeDictionary');
 
+const {getErrorFromResponse} = require('../util/backendResponseUtil');
+
 /**
  * Call GET /market/aggregatedOrderBook/:currency-:baseCurrency on Backend to get the current aggregated state of the
  * orderbook.
@@ -66,41 +68,6 @@ async function getAvailableBalance(req, currency) {
 
 }
 
-function getErrorFromData(data, ...errorTypes) {
-
-  if(data instanceof Error) {
-
-    return {msg: data.message};
-
-  }
-
-  if(data.error) {
-
-    return {msg: data.error.message};
-
-  }
-
-  let errorObject;
-
-  if(errorTypes) {
-
-    for(let i = 0; i < errorTypes.length; i++) {
-
-      const errorType = errorTypes[i];
-
-      if(typeof data === errorType) {
-
-        errorObject = {msg: data};
-
-        break;
-
-      }
-    }
-  }
-
-  return errorObject;
-}
-
 exports.index = (req, res) => {
 
   logger.debug(`Market index page with symbol ${req.params.symbol} gets accessed`);
@@ -141,7 +108,7 @@ exports.index = (req, res) => {
 
     arrayOfResponses.forEach((data) => {
 
-      const errorObject = getErrorFromData(data, 'string');
+      const errorObject = getErrorFromResponse(data, 'string');
 
       if(errorObject) {
 

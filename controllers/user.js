@@ -22,7 +22,6 @@ function requestLogin(req, res, next, redirectUrl) {
       if(err) {
         return next(err);
       }
-      logger.info(info);
       req.session.jwtToken = info.token;
       req.session.save();
       res.redirect(redirectUrl);
