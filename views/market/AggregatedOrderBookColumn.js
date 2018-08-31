@@ -12,18 +12,26 @@ export default class AggregatedOrderBookColumn extends React.Component {
 
   renderRows = (rows, max) => {
     let arr = [];
-    let count = max < rows.length ? max : rows.length;
-    for (let i = 0; i < count; i++) {
-      arr.push(
-        <Grid container key={i} className={'aggregated-order-book-row'}>
-          <div className={'percent-filled'}
-               style={ { width: `${Math.round( rows[i].filledQuantity *100 /  rows[i].quantity )}%` } }
-           />
-          <Grid item xs={3} className={'aggregated-price'}>{ this.formatNumber(rows[i].price) }</Grid>
-          <Grid item xs={4}>{ this.formatNumber(rows[i].quantity) }</Grid>
-          <Grid item xs={5}>{ this.formatNumber(rows[i].price * rows[i].quantity) }</Grid>
-        </Grid>
-      )
+    for (let i = 0; i < max; i++) {
+      if (rows[i]) {
+        arr.push(
+          <Grid container key={i} className={'aggregated-order-book-row'}>
+            <div className={'percent-filled'}
+                 style={ { width: `${Math.round( rows[i].filledQuantity *100 /  rows[i].quantity )}%` } }
+            />
+            <Grid item xs={3} className={'aggregated-price'}>{ this.formatNumber(rows[i].price) }</Grid>
+            <Grid item xs={4}>{ this.formatNumber(rows[i].quantity) }</Grid>
+            <Grid item xs={5}>{ this.formatNumber(rows[i].price * rows[i].quantity) }</Grid>
+          </Grid>
+        )
+      } else {
+        arr.push(
+          <Grid container key={i} className={'aggregated-order-book-row'}>
+            &nbsp;
+          </Grid>
+        )
+      }
+
     }
     return arr;
   };
