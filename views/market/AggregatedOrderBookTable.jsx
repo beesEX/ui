@@ -7,7 +7,7 @@ import React from 'react';
 import AggregatedOrderBookColumn from './AggregatedOrderBookColumn';
 import Typography from "@material-ui/core/Typography/Typography";
 
-export default class AggregatedOrderBookTable extends React.Component {
+export default class AggregatedOrderBookTable extends React.PureComponent {
   constructor(props) {
     super(props);
     this.priceLevels = 20;
@@ -24,7 +24,7 @@ export default class AggregatedOrderBookTable extends React.Component {
   }
 
   componentDidMount() {
-    const { asks, bids, symbol } = this.state;
+    const { symbol } = this.state;
     const ws = new WebSocket(`ws://localhost:8081/market/${symbol}`);
     ws.onmessage = (event) => {
       const parsedData = JSON.parse(event.data);
@@ -51,7 +51,6 @@ export default class AggregatedOrderBookTable extends React.Component {
               this.changeVolumeByPrice(_side, index, -quantity, 0);
               break;
           }
-          return ;
         } else {
           if (type==='PLACED') {
             this.addVolumeByPrice(_side, price, quantity, tradedQuantity);
@@ -68,7 +67,7 @@ export default class AggregatedOrderBookTable extends React.Component {
     const priceArr = {};
     let traded = 0;
     for (let i = 0; i< matches.length; i++) {
-      const { price, filledCompletely, quantity, tradedQuantity } = matches[i];
+      const { price, quantity, tradedQuantity } = matches[i];
       const priceStr = price.toString();
       traded += tradedQuantity;
       if (typeof priceArr[priceStr] === 'undefined') priceArr[priceStr] = { quantity, tradedQuantity };

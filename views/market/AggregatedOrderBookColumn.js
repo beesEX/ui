@@ -8,6 +8,11 @@ export default class AggregatedOrderBookColumn extends React.Component {
     super(props);
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    if (nextProps.rows === this.props.rows) return false;
+    return true;
+  }
+
   formatNumber = (number, length=10) => number.toString().substr(0, length);
 
   renderRows = (rows, max) => {
