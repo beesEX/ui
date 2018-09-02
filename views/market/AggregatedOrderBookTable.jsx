@@ -14,12 +14,11 @@ export default class AggregatedOrderBookTable extends React.Component {
 
     let asks = window.market.aggregatedOrderBookState.asks.slice();
     let bids = window.market.aggregatedOrderBookState.bids.slice();
-    this.sortArray(asks);
-    this.sortArray(bids);
-
+    asks.splice(this.priceLevels);
+    bids.reverse().splice(this.priceLevels);
     this.state = {
-      asks: asks,
-      bids: bids,
+      asks: asks.reverse(),
+      bids,
       symbol: window.market.aggregatedOrderBookState.symbol
     };
   }
@@ -39,7 +38,6 @@ export default class AggregatedOrderBookTable extends React.Component {
         }
         const _side = this.getSide(side);
         const index = this.getByPrice( _side, price );
-        console.log(_side, index);
         if (filledCompletely) this.removeVolumeByPrice(_side, index);
         else if ( typeof index === "number" ) {
           switch (type) {
@@ -117,9 +115,7 @@ export default class AggregatedOrderBookTable extends React.Component {
   };
 
   removeVolumeByPrice = ( side, index ) => {
-    console.log(side, index);
     if (typeof index !== 'number') return;
-    console.log(side, index);
     side.splice(index, 1);
   };
 
@@ -132,12 +128,12 @@ export default class AggregatedOrderBookTable extends React.Component {
     }
   };
 
-  sortArray = (arr, fromBottom = false) => {
+  sortArray = (arr) => {
     arr.sort( (a, b) => {
       if (a.price > b.price) return -1;
       return 1;
     } );
-    arr.splice( fromBottom ? -this.priceLevels : this.priceLevels );
+    return arr.splice( this.priceLevels );
   };
 
   render() {
