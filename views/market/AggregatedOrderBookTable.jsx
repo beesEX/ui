@@ -44,10 +44,13 @@ export default class AggregatedOrderBookTable extends React.Component {
           switch (type) {
             case 'PLACED':
               this.changeVolumeByPrice(_side, index, quantity, tradedQuantity);
+              break;
             case 'UPDATED':
               this.changeVolumeByPrice(_side, index, quantity - oldQuantity, 0);
+              break;
             case 'CANCELED':
               this.changeVolumeByPrice(_side, index, -quantity, 0);
+              break;
           }
           return this.updateSide(side, _side);
         } else {
@@ -127,12 +130,11 @@ export default class AggregatedOrderBookTable extends React.Component {
   };
 
   sortArray = (arr) => {
-
     arr.sort( (a, b) => {
       if (a.price > b.price) return -1;
       return 1;
     } );
-    arr.splice(this.priceLevels);
+    arr.splice(this.priceLevels*2);
   };
 
   render() {
