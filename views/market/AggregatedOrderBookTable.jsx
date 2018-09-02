@@ -39,6 +39,7 @@ export default class AggregatedOrderBookTable extends React.Component {
         }
         const _side = this.getSide(side);
         const index = this.getByPrice( _side, price );
+        console.log(_side, index);
         if (filledCompletely) this.removeVolumeByPrice(_side, index);
         else if ( typeof index === "number" ) {
           switch (type) {
@@ -52,13 +53,13 @@ export default class AggregatedOrderBookTable extends React.Component {
               this.changeVolumeByPrice(_side, index, -quantity, 0);
               break;
           }
-          return this.updateSide(side, _side);
+          return ;
         } else {
           if (type==='PLACED') {
             this.addVolumeByPrice(_side, price, quantity, tradedQuantity);
-            return this.updateSide(side, _side);
           }
         }
+        this.updateSide(side, _side)
       }
     };
   }
@@ -116,7 +117,9 @@ export default class AggregatedOrderBookTable extends React.Component {
   };
 
   removeVolumeByPrice = ( side, index ) => {
+    console.log(side, index);
     if (typeof index !== 'number') return;
+    console.log(side, index);
     side.splice(index, 1);
   };
 
