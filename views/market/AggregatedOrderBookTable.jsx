@@ -132,12 +132,12 @@ export default class AggregatedOrderBookTable extends React.Component {
     }
   };
 
-  sortArray = (arr) => {
+  sortArray = (arr, fromBottom = false) => {
     arr.sort( (a, b) => {
       if (a.price > b.price) return -1;
       return 1;
     } );
-    arr.splice(this.priceLevels*2);
+    arr.splice( fromBottom ? -this.priceLevels : this.priceLevels );
   };
 
   render() {
