@@ -29,18 +29,62 @@ export default class AggregatedOrderBookTable extends React.Component {
     const ws = new WebSocket(`ws://localhost:8081/market/${symbol}`);
     ws.onmessage = (event) => {
       const parsedData = JSON.parse(event.data);
+      console.log(parsedData);
       if (parsedData.type === 'ORDER_BOOK_EVENT' ) {
-        const { reason: {side, price, quantity }, filledCompletely } = JSON.parse(event.data);
-        const index = this.getByPrice( this.getSide(side), price );
-        if ( typeof index === "number" ) {
-          if (filledCompletely) return this.removeVolumeByPrice(side, index);
-          return this.changeVolumeByPrice(side, index, quantity, 0);
+        const { matches, reason: {type, side, price, quantity, oldQuantity }, filledCompletely } = JSON.parse(event.data);
+        let tradedQuantity = 0;
+        // if matches then check/update also the other side
+        if (matches.length) {
+          tradedQuantity = this.progressMatches(side, matches);
+        }
+        const _side = this.getSide(side);
+        const index = this.getByPrice( _side, price );
+        if (filledCompletely) this.removeVolumeByPrice(_side, index);
+        else if ( typeof index === "number" ) {
+          switch (type) {
+            case 'PLACED':
+              this.changeVolumeByPrice(_side, index, quantity, tradedQuantity);
+            case 'UPDATED':
+              this.changeVolumeByPrice(_side, index, quantity - oldQuantity, 0);
+            case 'CANCELED':
+              this.changeVolumeByPrice(_side, index, -quantity, 0);
+          }
+          return this.updateSide(side, _side);
         } else {
-          return this.addVolumeByPrice(side, price, quantity, 0);
+          if (type==='PLACED') {
+            this.addVolumeByPrice(_side, price, quantity, tradedQuantity);
+            return this.updateSide(side, _side);
+          }
         }
       }
     };
   }
+
+  progressMatches = (side, matches) => {
+    const _side = side === 'SELL' ? 'BUY' : 'SELL';
+    const _otherSide = this.getSide( _side );
+    const priceArr = {};
+    let traded = 0;
+    for (let i = 0; i< matches.length; i++) {
+      const { price, filledCompletely, quantity, tradedQuantity } = matches[i];
+      const priceStr = price.toString();
+      traded += tradedQuantity;
+      if (typeof priceArr[priceStr] === 'undefined') priceArr[priceStr] = { quantity, tradedQuantity };
+      else {
+        priceArr[priceStr].quantity += quantity;
+        priceArr[priceStr].tradedQuantity += tradedQuantity;
+      }
+    };
+
+    Object.keys(priceArr).map(price => {
+      const _index = this.getByPrice(_otherSide, parseFloat(price));
+      if ( typeof _index === "number" ) {
+        this.changeVolumeByPrice(_otherSide, _index, 0, priceArr[price].tradedQuantity);
+      }
+    });
+    this.updateSide(_side, _otherSide);
+    return traded;
+  };
 
   getSide = (side) => side === 'SELL' ? this.state.asks.slice() : this.state.bids.slice();
 
@@ -56,7 +100,6 @@ export default class AggregatedOrderBookTable extends React.Component {
     }
   };
   getByPrice = (side, searchPrice) => {
-
     for (let i = 0; i<side.length; i++) {
       if ( side[i].price === searchPrice ) return i;
     }
@@ -64,20 +107,23 @@ export default class AggregatedOrderBookTable extends React.Component {
   };
 
   changeVolumeByPrice = ( side, index, volumeOffset, filledVolumeOffset ) => {
-    let _side = this.getSide(side);
-    _side[index].quantity += volumeOffset;
-    this.updateSide(side, _side);
+    side[index].quantity += volumeOffset;
+    side[index].filledQuantity += filledVolumeOffset;
+    if ( side[index].quantity === side[index].filledQuantity ) this.removeVolumeByPrice(side, index);
   };
 
   removeVolumeByPrice = ( side, index ) => {
-    this.updateSide(side, this.getSide(side).splice(index, 1));
+    if (typeof index !== 'number') return;
+    side.splice(index, 1);
   };
 
-  addVolumeByPrice = ( side, price, volume, filledVolume ) => {
-    let _side = this.getSide(side);
-    _side.push({price, quantity: volume, filledVolume});
-    this.sortArray(_side);
-    this.updateSide(side, _side);
+  addVolumeByPrice = ( side, price, volume, filledQuantity ) => {
+    if (!side.length) {
+      side.push({price, quantity: volume, filledQuantity});
+    } else {
+      side.push({price, quantity: volume, filledQuantity});
+      this.sortArray(side);
+    }
   };
 
   sortArray = (arr) => {
