@@ -1,3 +1,10 @@
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1500px
+) !default;
+
 @import "themes/default/variables";
 
 @import "node_modules/bootstrap/scss/bootstrap";
@@ -195,6 +202,15 @@ textarea {
 .order-history-table-wrapper{
 
   overflow: auto;
+
+}
+
+.tradingViewChartContainer{
+
+  height: 788px;
+
+  margin-bottom: ($grid-gutter-width) !important;
+
 }
 
 .aggregated-order-book-row {
@@ -213,7 +229,7 @@ textarea {
 }
 
 .aggregated-table-asks {
-  margin-bottom: 24px;
+  margin-bottom: ($grid-gutter-width) !important;
 
   .aggregated-price {
     color: #f62bfa;
@@ -221,6 +237,9 @@ textarea {
   .aggregated-order-book-row .percent-filled {
     background-color: rgba(#f62bfa, 0.5);
   }
+
+  line-height: 2;
+
 }
 
 .aggregated-table-bids {
@@ -231,4 +250,6 @@ textarea {
   .aggregated-order-book-row .percent-filled {
     background-color: rgba(#47fa75, 0.5);
   }
+
+  line-height: 2;
 }
