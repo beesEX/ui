@@ -33,7 +33,7 @@ function encodeJSON(jsonObject) {
 
   for(const key of arrayOfKeys) {
 
-    encodedString += `&${key}=${jsonObject[ key ]}`;
+    encodedString += `&${key}=${jsonObject[key]}`;
 
   }
 
@@ -86,7 +86,17 @@ export default function ajax(method, url, data) {
 
       // request.setRequestHeader('x-csrf-token', csrfToken);
 
-      request.send(JSON.stringify(data));
+      if(data) {
+
+        request.send(JSON.stringify(data));
+
+      }
+      else{
+
+        request.send();
+
+      }
+
 
     }
     else{
@@ -99,18 +109,18 @@ export default function ajax(method, url, data) {
 
           let paramName;
 
-          if(keys[ 0 ] === 'renderAsArray') {
+          if(keys[0] === 'renderAsArray') {
 
-            [ , paramName ] = data;
+            [, paramName] = data;
 
           }
           else{
 
-            [ paramName ] = data;
+            [paramName] = data;
 
           }
 
-          const array = data[ paramName ];
+          const array = data[paramName];
 
           dataAsString = encodeArray(array, paramName);
 

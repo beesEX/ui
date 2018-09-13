@@ -122,7 +122,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public'), {maxAge: 31557600000}));
 app.use(requestUUIDGenerator);
 
-const {ROUTE_TO_MARKET_INDEX} = require('./config/routeDictionary');
+const {ROUTE_TO_MARKET_INDEX, ROUTE_TO_MARKET_OHLCV} = require('./config/routeDictionary');
 /**
  * public routes, no authentication required
  */
@@ -158,6 +158,7 @@ app.post('/finance/deposit/:currency', passportConfig.isAuthenticated, orderRepl
  */
 
 app.get(ROUTE_TO_MARKET_INDEX, passportConfig.isAuthenticated, marketController.index);
+app.get(ROUTE_TO_MARKET_OHLCV, passportConfig.isAuthenticated, marketController.getOHLCV);
 
 /**
  * order

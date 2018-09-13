@@ -6,6 +6,7 @@
 import * as React from 'react';
 import {widget} from '../../public/charting_library/charting_library.min';
 import Paper from '@material-ui/core/Paper';
+import BeesExDataFeed from './BeesExDataFeed';
 
 function getLanguageFromURL() {
   const regex = new RegExp('[\\?&]lang=([^&#]*)');
@@ -15,18 +16,19 @@ function getLanguageFromURL() {
 
 export class TradingViewChart extends React.PureComponent{
   static defaultProps = {
-    symbol: 'AAPL',
+    symbol: 'BTC_USDT',
     interval: 'D',
     containerId: 'tv_chart_container',
-    datafeedUrl: 'https://demo_feed.tradingview.com',
     libraryPath: '/charting_library/',
-    chartsStorageUrl: 'https://saveload.tradingview.com',
+    chartsStorageUrl: '', // TODO
     chartsStorageApiVersion: '1.1',
     clientId: 'tradingview.com',
     userId: 'public_user_id',
     fullscreen: false,
     autosize: true,
-    studiesOverrides: {}
+    studiesOverrides: {},
+    debug: false,
+    allow_symbol_change: false
   };
 
   tvWidget = null;
@@ -35,13 +37,13 @@ export class TradingViewChart extends React.PureComponent{
     const widgetOptions = {
       symbol: this.props.symbol,
       // BEWARE: no trailing slash is expected in feed URL
-      datafeed: new window.Datafeeds.UDFCompatibleDatafeed(this.props.datafeedUrl),
+      datafeed: new BeesExDataFeed(),
       interval: this.props.interval,
       container_id: this.props.containerId,
       library_path: this.props.libraryPath,
 
       locale: getLanguageFromURL() || 'en',
-      disabled_features: ['use_localstorage_for_settings'],
+      disabled_features: ['use_localstorage_for_settings','header_symbol_search'],
       enabled_features: ['study_templates'],
       charts_storage_url: this.props.chartsStorageUrl,
       charts_storage_api_version: this.props.chartsStorageApiVersion,
@@ -49,7 +51,9 @@ export class TradingViewChart extends React.PureComponent{
       user_id: this.props.userId,
       fullscreen: this.props.fullscreen,
       autosize: this.props.autosize,
-      studies_overrides: this.props.studiesOverrides
+      studies_overrides: this.props.studiesOverrides,
+      debug: this.props.debug,
+      allow_symbol_change: this.props.allow_symbol_change
     };
 
     const tvWidget = new widget(widgetOptions);

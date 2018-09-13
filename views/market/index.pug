@@ -18,6 +18,4 @@ block content
         != 'console.log(window.market.aggregatedOrderBookState);\n'
       != `window.market.currencyAvailableBalance = ${currencyAvailableBalance || 0};\n`
       != `window.market.baseCurrencyAvailableBalance = ${baseCurrencyAvailableBalance || 0};\n`
-  script(src='/datafeeds/udf/bundle.js')
-  script(src='/datafeeds/udf/polyfills.js')
   script(src='/js/market/market.js')

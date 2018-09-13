@@ -103,7 +103,7 @@ class MarketContent extends React.Component{
                   <Grid
                     item
                   >
-                    <TradingViewChart/>
+                    <TradingViewChart debug={true} interval={'1'}/>
 
                   </Grid>
 

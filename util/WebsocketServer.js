@@ -65,7 +65,7 @@ function WebSocketServer(port) {
   // init default event handler and emit custom events if needed
   instance.on('connection', (webSocket, request) => {
 
-    logger.debug(`new connection: request = ${request}`);
+    logger.debug('websocket server: new connection');
 
     setOfOpenWebSockets.add(webSocket);
 

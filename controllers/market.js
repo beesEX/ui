@@ -26,7 +26,8 @@ async function getAggregatedOrderBook(req) {
 
   if(process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK) {
 
-    const url = process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK.replace(':currency', req.params.currency).replace(':baseCurrency', req.params.baseCurrency);
+    const url = process.env.BACKEND_MARKET_AGGREGATED_ORDER_BOOK.replace(':currency', req.params.currency)
+      .replace(':baseCurrency', req.params.baseCurrency);
 
     const options = {
 
@@ -102,69 +103,70 @@ exports.index = (req, res) => {
   Promise.all([ordersPromise,
     aggregatedOrderBookPromise,
     currencyAvailableBalancePromise,
-    basecurrencyAvailableBalancePromise]).then((arrayOfResponses) => {
+    basecurrencyAvailableBalancePromise])
+    .then((arrayOfResponses) => {
 
-    let errorOccurred = false;
+      let errorOccurred = false;
 
-    arrayOfResponses.forEach((data) => {
+      arrayOfResponses.forEach((data) => {
 
-      const errorObject = getErrorFromResponse(data, 'string');
+        const errorObject = getErrorFromResponse(data, 'string');
 
-      if(errorObject) {
+        if(errorObject) {
 
-        errorOccurred = true;
+          errorOccurred = true;
 
-        req.flash('errors', errorObject);
+          req.flash('errors', errorObject);
+
+        }
+      });
+
+      if(errorOccurred) {
+
+        const data = {title: 'Market'};
+
+        res.render('market', data);
+      }
+      else{
+
+        const dataFromOrdersPromise = arrayOfResponses[0];
+
+        const dataFromAggregatedOrderBookPromise = arrayOfResponses[1];
+
+        const dataFromCurrencyAvailableBalancePromise = arrayOfResponses[2];
+
+        const dataFrombaseCurrencyAvailableBalancePromise = arrayOfResponses[3];
+
+        const data = dataFromOrdersPromise;
+
+        data.limit = limit;
+
+        data.currency = extraOptions.currency;
+
+        data.baseCurrency = extraOptions.baseCurrency;
+
+        data.title = 'Market';
+
+        data.aggregatedOrderBookState = dataFromAggregatedOrderBookPromise;
+
+        data.currencyAvailableBalance = dataFromCurrencyAvailableBalancePromise;
+
+        data.baseCurrencyAvailableBalance = dataFrombaseCurrencyAvailableBalancePromise;
+
+        res.render('market', data);
 
       }
-    });
 
-    if(errorOccurred) {
+
+    }, (error) => {
+
+      req.flash('errors', {msg: error.message});
 
       const data = {title: 'Market'};
 
       res.render('market', data);
-    }
-    else{
 
-      const dataFromOrdersPromise = arrayOfResponses[0];
-
-      const dataFromAggregatedOrderBookPromise = arrayOfResponses[1];
-
-      const dataFromCurrencyAvailableBalancePromise = arrayOfResponses[2];
-
-      const dataFrombaseCurrencyAvailableBalancePromise = arrayOfResponses[3];
-
-      const data = dataFromOrdersPromise;
-
-      data.limit = limit;
-
-      data.currency = extraOptions.currency;
-
-      data.baseCurrency = extraOptions.baseCurrency;
-
-      data.title = 'Market';
-
-      data.aggregatedOrderBookState = dataFromAggregatedOrderBookPromise;
-
-      data.currencyAvailableBalance = dataFromCurrencyAvailableBalancePromise;
-
-      data.baseCurrencyAvailableBalance = dataFrombaseCurrencyAvailableBalancePromise;
-
-      res.render('market', data);
-
-    }
-
-
-  }, (error) => {
-
-    req.flash('errors', {msg: error.message});
-
-    const data = {title: 'Market'};
-
-    res.render('market', data);
-
-  });
+    });
 
 };
 
@@ -213,5 +215,20 @@ exports.handleOrderBookStateChangeEvent = (websocket) => {
     }
 
   }
+};
+
+exports.getOHLCV = (req, res) => {
+
+  logger.debug(`get ohlcv: params = ${JSON.stringify(req.params)}`);
+
+  res.json({
+
+    error: {
+
+      message: 'necessary method on the backend not implemented yet'
+
+    }
+
+  });
 };
 
