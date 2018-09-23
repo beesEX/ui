@@ -72,7 +72,10 @@ export default class AggregatedOrderBookTable extends React.PureComponent{
             if ( oldQuantity !== quantity )
               newQuantity += (quantity - oldQuantity);
 
-            this.changeVolumeByPrice(sideState, index, newQuantity, newFilledQuantity + tradedQuantity);
+            if (typeof index === 'number')
+              this.changeVolumeByPrice(sideState, index, newQuantity, newFilledQuantity + tradedQuantity);
+            else
+              this.addPriceLevel(sideState, price, newQuantity, newFilledQuantity + tradedQuantity);
 
             break;
 
