@@ -17,7 +17,7 @@ function getLanguageFromURL() {
 export class TradingViewChart extends React.PureComponent{
   static defaultProps = {
     symbol: 'BTC_USDT',
-    interval: 'D',
+    interval: '1',
     containerId: 'tv_chart_container',
     libraryPath: '/charting_library/',
     chartsStorageUrl: '', // TODO

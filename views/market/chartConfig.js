@@ -7,6 +7,8 @@ const SYMBOL_DICTIONARY = {};
 
 const CHART_SUPPORTED_RESOLUTIONS = ['1', '5', '15', '30', '60'];
 
+const SERVER_SUPPORTED_RESOLUTIONS = ['1', '5'];
+
 SYMBOL_DICTIONARY['BTC_USDT'] = {
 
   name: 'BTC_USDT',
@@ -19,10 +21,6 @@ SYMBOL_DICTIONARY['BTC_USDT'] = {
 
   session: '0900-1630', // TODO: trading session see https://github.com/beesEX/charting_library/wiki/Trading-Sessions
 
-  exchange: 'BeesEx',
-
-  listed_exchange: 'BeesEx',
-
   timezone: 'Europe/Berlin',
 
   minmov: 1,
@@ -31,7 +29,7 @@ SYMBOL_DICTIONARY['BTC_USDT'] = {
 
   has_intraday: true,
 
-  intraday_multipliers: CHART_SUPPORTED_RESOLUTIONS
+  intraday_multipliers: SERVER_SUPPORTED_RESOLUTIONS
 
 };
 

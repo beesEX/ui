@@ -158,7 +158,7 @@ app.post('/finance/deposit/:currency', passportConfig.isAuthenticated, orderRepl
  */
 
 app.get(ROUTE_TO_MARKET_INDEX, passportConfig.isAuthenticated, marketController.index);
-app.get(ROUTE_TO_MARKET_OHLCV, passportConfig.isAuthenticated, marketController.getOHLCV);
+app.get(ROUTE_TO_MARKET_OHLCV, passportConfig.isAuthenticated, marketController.getOHLCVDataPoints);
 
 /**
  * order

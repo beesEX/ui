@@ -9,6 +9,57 @@ const {ROUTE_TO_MARKET_OHLCV} = require('../../config/routeDictionary');
 
 const {CHART_SUPPORTED_RESOLUTIONS, SYMBOL_DICTIONARY} = require('./chartConfig');
 
+const ONE_MIN_IN_MS = 60 * 1000;
+
+const ONE_HOUR_IN_MS = 60 * ONE_MIN_IN_MS;
+
+const ONE_DAY_IN_MS = 24 * ONE_HOUR_IN_MS;
+
+const ONE_WEEK_IN_MS = 7 * ONE_DAY_IN_MS;
+
+const ONE_MONTH_IN_MS = 31 * ONE_DAY_IN_MS;
+
+/**
+ * convert a resolution as string in number of min
+ *
+ * @param {string} resolution - Format is described in
+ *   {@link https://github.com/beesEX/charting_library/wiki/Resolution | the article}.
+ * @return {number}BeesExDataFeed.js
+ */
+function convertResolutionToMin(resolution) {
+
+  const lastCharacter = resolution[resolution.length - 1];
+
+  const resolutionNumber = parseInt(resolution.substring(0, resolution.length - 1), 0);
+
+  switch(lastCharacter) {
+
+    case 'S':
+
+      return resolutionNumber / 60;
+
+    case 'D':
+
+      return resolutionNumber * ONE_DAY_IN_MS;
+
+    case 'W':
+
+      return resolutionNumber * ONE_WEEK_IN_MS;
+
+    case 'M':
+
+      // month has always 31 days
+      return resolutionNumber * ONE_MONTH_IN_MS;
+
+    default:
+
+      return parseInt(resolution, 0) * ONE_MIN_IN_MS;
+
+  }
+
+}
+
+
 /**
  * This class implements the js data feed interface of the trading view chart
  */
@@ -186,6 +237,7 @@ export default class BeesExDataFeed {
       to = Date.now();
 
     }
+    const serverResolution = convertResolutionToMin(resolution);
 
     const arrayOfCurrencies = symbolInfo.name.split('_');
 
@@ -195,11 +247,12 @@ export default class BeesExDataFeed {
 
     const url = ROUTE_TO_MARKET_OHLCV.replace(':currency', currency)
       .replace(':baseCurrency', baseCurrency)
-      .replace(':resolution', resolution)
-      .replace(':from', from)
-      .replace(':to', to);
+      .replace(':resolution', serverResolution);
 
-    ajax('get', url)
+    ajax('get', url, {
+      from,
+      to
+    })
       .then((responseTextFromServer) => {
 
         const responseObjectFromServer = JSON.parse(responseTextFromServer);
@@ -211,7 +264,9 @@ export default class BeesExDataFeed {
         }
         else{
 
-          onHistoryCallback(responseObjectFromServer.data);
+          const noData = responseObjectFromServer.data && responseObjectFromServer.data.length === 0;
+
+          onHistoryCallback(responseObjectFromServer.data, {noData});
 
         }
 

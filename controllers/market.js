@@ -217,18 +217,37 @@ exports.handleOrderBookStateChangeEvent = (websocket) => {
   }
 };
 
-exports.getOHLCV = (req, res) => {
+exports.getOHLCVDataPoints = (req, res) => {
 
-  logger.debug(`get ohlcv: params = ${JSON.stringify(req.params)}`);
+  logger.debug(`get ohlcv: params = ${JSON.stringify(req.params)}: query = ${req.query && JSON.stringify(req.query)}`);
 
-  res.json({
+  let url = process.env.BACKEND_MARKET_OHCLV_DATA_POINTS
+    .replace(':currency', req.params.currency)
+    .replace(':baseCurrency', req.params.baseCurrency)
+    .replace(':resolution', req.params.resolution);
 
-    error: {
+  const from = (req.query.from !== undefined) ? req.query.from : '';
 
-      message: 'necessary method on the backend not implemented yet'
+  const to = (req.query.to !== undefined) ? req.query.to : '';
 
-    }
+  url += `?from=${from}&to=${to}`;
+
+  const options = {
+
+    url,
+
+    req
+
+  };
+
+
+  const resultFromBackEndPromise = requestToBackEnd.get(options);
+
+  resultFromBackEndPromise.then((resultFromBackEnd) => {
+
+    res.json(resultFromBackEnd);
 
   });
+
 };
 
