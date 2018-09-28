@@ -17,6 +17,11 @@ import AlertDialog from '../util/AlertDialog';
 import UpdateOrderDialog from './UpdateOrderDialog';
 import AggregatedOrderBookTable from './AggregatedOrderBookTable';
 import {TradingViewChart} from './TradingViewChart';
+import WebSocketToServer from '../util/WebSocketToServer';
+
+const webSocketToServer = new WebSocketToServer(`ws://localhost:8081/market/${window.market.currency}_${window.market.baseCurrency}`);
+
+webSocketToServer.open();
 
 class MarketContent extends React.Component{
 
@@ -103,7 +108,7 @@ class MarketContent extends React.Component{
                   <Grid
                     item
                   >
-                    <TradingViewChart debug={true} interval={'1'}/>
+                    <TradingViewChart debug={true} interval={'1'} webSocketToServer={webSocketToServer}/>
 
                   </Grid>
 
@@ -198,7 +203,7 @@ class MarketContent extends React.Component{
                 lg={3}
               >
 
-                <AggregatedOrderBookTable/>
+                <AggregatedOrderBookTable webSocketToServer={webSocketToServer}/>
 
               </Grid>
 

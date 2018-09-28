@@ -7,7 +7,7 @@ import ajax from '../util/ajax';
 
 const {ROUTE_TO_MARKET_OHLCV} = require('../../config/routeDictionary');
 
-const {CHART_SUPPORTED_RESOLUTIONS, SYMBOL_DICTIONARY} = require('./chartConfig');
+const {CHART_SUPPORTED_RESOLUTIONS, SERVER_SUPPORTED_RESOLUTIONS, SYMBOL_DICTIONARY} = require('./chartConfig');
 
 const ONE_MIN_IN_MS = 60 * 1000;
 
@@ -26,13 +26,13 @@ const ONE_MONTH_IN_MS = 31 * ONE_DAY_IN_MS;
  *   {@link https://github.com/beesEX/charting_library/wiki/Resolution | the article}.
  * @return {number}BeesExDataFeed.js
  */
-function convertResolutionToMin(resolution) {
+function convertResolutionToMS(resolution) {
 
   const lastCharacter = resolution[resolution.length - 1];
 
   const resolutionNumber = parseInt(resolution.substring(0, resolution.length - 1), 0);
 
-  switch(lastCharacter) {
+  switch(lastCharacter){
 
     case 'S':
 
@@ -59,11 +59,135 @@ function convertResolutionToMin(resolution) {
 
 }
 
+function isInInterval(start, length, value) {
+
+  const intervalRightThreshold = start + length;
+
+  if(value < intervalRightThreshold) {
+
+    return true;
+
+  }
+
+  return false;
+
+}
+
+function getTradedVolume(arrayOfMatchedOrders) {
+
+  let tradedVolume = 0;
+
+  arrayOfMatchedOrders.forEach((matchedOrder) => {
+
+    const {tradedQuantity} = matchedOrder;
+
+    tradedVolume += tradedQuantity;
+
+  });
+
+  return tradedVolume;
+
+}
+
+function createNewBar(resolution, currentBar) {
+
+  return {
+
+    open: currentBar.close,
+
+    close: currentBar.close,
+
+    low: currentBar.close,
+
+    high: currentBar.close,
+
+    time: currentBar.time + resolution,
+
+    volume: 0
+
+  };
+
+}
+
+function updateBar(bar, price, quantity) {
+
+  bar.close = price;
+
+  bar.low = Math.min(bar.low, price);
+
+  bar.high = Math.max(bar.high, price);
+
+  bar.volume += quantity;
+
+}
+
+function updateArrayOfBars(resolution, arrayOfBars, price, quantity, time) {
+
+  console.log(time);
+
+  let lastBar = arrayOfBars[arrayOfBars.length - 1];
+
+  while(!isInInterval(lastBar.time, resolution, time)){
+
+    lastBar = createNewBar(resolution, lastBar);
+
+    arrayOfBars.push(lastBar);
+
+  }
+
+  updateBar(lastBar, price, quantity);
+
+
+}
+
+function mergeBar(sourceBar, targetBar) {
+
+  targetBar.high = Math.max(sourceBar.high, targetBar.high);
+
+  targetBar.volume += sourceBar.volume;
+
+  targetBar.low = Math.max(sourceBar.low, targetBar.low);
+
+  targetBar.close = sourceBar.close;
+
+}
+
+function calculateClosestStartTimeForResolution(time, resolution) {
+
+  return time - (time % resolution);
+
+}
 
 /**
  * This class implements the js data feed interface of the trading view chart
  */
 export default class BeesExDataFeed {
+
+  constructor(webSocketToServer) {
+
+    this.webSocketToServer = webSocketToServer;
+
+    this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject = {};
+
+    this.mapOfResolutionAndArrayOfBars = {};
+
+    if(this.webSocketToServer) {
+
+      SERVER_SUPPORTED_RESOLUTIONS.forEach((resolutionAsString) => {
+
+        const resolutionInMs = convertResolutionToMS(resolutionAsString);
+
+        this.mapOfResolutionAndArrayOfBars[resolutionInMs] = [];
+
+      });
+
+      const orderMatchEventHandler = this.createOrderMatchEventHandler();
+
+      this.websocketHandlerId = this.webSocketToServer.onMessage(orderMatchEventHandler);
+
+    }
+
+  }
 
   /**
    * This call is intended to provide the object filled with the configuration data.
@@ -237,7 +361,14 @@ export default class BeesExDataFeed {
       to = Date.now();
 
     }
-    const serverResolution = convertResolutionToMin(resolution);
+
+    // from, to = unix timestamp in s not ms (wrong documented in chart wiki)
+
+    from *= 1000;
+
+    to *= 1000;
+
+    const resolutionInMS = convertResolutionToMS(resolution);
 
     const arrayOfCurrencies = symbolInfo.name.split('_');
 
@@ -247,7 +378,7 @@ export default class BeesExDataFeed {
 
     const url = ROUTE_TO_MARKET_OHLCV.replace(':currency', currency)
       .replace(':baseCurrency', baseCurrency)
-      .replace(':resolution', serverResolution);
+      .replace(':resolution', resolutionInMS);
 
     ajax('get', url, {
       from,
@@ -264,9 +395,21 @@ export default class BeesExDataFeed {
         }
         else{
 
+          this.rememberLastDataPoint(resolutionInMS, responseObjectFromServer.data);
+
           const noData = responseObjectFromServer.data && responseObjectFromServer.data.length === 0;
 
           onHistoryCallback(responseObjectFromServer.data, {noData});
+
+          const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolutionInMS];
+
+          if(arrayOfBars.length > 0) {
+
+            const lastBar = arrayOfBars[arrayOfBars.length - 1];
+
+            this.callRealTimeCallbackUpdatingCurrentBar(resolutionInMS, lastBar.time);
+
+          }
 
         }
 
@@ -319,7 +462,25 @@ export default class BeesExDataFeed {
    */
   subscribeBars(symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback) {
 
-    console.log(onResetCacheNeededCallback); // work around eslint no-unused-vars
+    const resolutionInMS = convertResolutionToMS(resolution);
+
+    let mapOfIdAndRealtimeCallback = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS];
+
+    if(!mapOfIdAndRealtimeCallback) {
+
+      mapOfIdAndRealtimeCallback = {};
+
+      this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS] = mapOfIdAndRealtimeCallback;
+
+    }
+
+    mapOfIdAndRealtimeCallback[subscriberUID] = {
+
+      realTimeCallback: onRealtimeCallback,
+
+      timeOutId: undefined
+
+    };
 
   }
 
@@ -330,7 +491,21 @@ export default class BeesExDataFeed {
    */
   unsubscribeBars(subscriberUID) {
 
-    console.log(subscriberUID); // work around eslint no-unused-vars
+    console.log(`unsubscribeBars with id = ${subscriberUID}`);
+
+    const arrayOfResolutions = Object.keys(this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject);
+
+    arrayOfResolutions.forEach((resolution) => {
+
+      const mapOfIdAndRealtimeCallback = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolution];
+
+      const {timeOutId} = mapOfIdAndRealtimeCallback[subscriberUID];
+
+      clearTimeout(timeOutId);
+
+      delete mapOfIdAndRealtimeCallback[subscriberUID];
+
+    });
 
   }
 
@@ -527,6 +702,178 @@ export default class BeesExDataFeed {
   unsubscribeDepth(subscriberUID) {
 
     console.log(subscriberUID); // work around eslint no-unused-vars
+
+  }
+
+  rememberLastDataPoint(serverResolution, arrayOfBarsFromServer) {
+
+    const arrayOfBarsOnClient = this.mapOfResolutionAndArrayOfBars[serverResolution];
+
+    if(arrayOfBarsOnClient.length > 0) {
+
+      const lastBarOnClient = arrayOfBarsOnClient[arrayOfBarsOnClient.length - 1];
+
+      if(arrayOfBarsFromServer.length > 0) {
+
+        const lastBarFromServer = arrayOfBarsFromServer[arrayOfBarsFromServer.length - 1];
+
+        if(lastBarOnClient.time === lastBarFromServer.time) {
+
+          mergeBar(lastBarOnClient, lastBarFromServer);
+
+        }
+
+        this.mapOfResolutionAndArrayOfBars[serverResolution] = [lastBarFromServer];
+
+      }
+      else{
+
+        this.mapOfResolutionAndArrayOfBars[serverResolution] = [lastBarOnClient];
+
+      }
+    }
+    else if(arrayOfBarsFromServer.length > 0) {
+
+      const lastBarFromServer = arrayOfBarsFromServer[arrayOfBarsFromServer.length - 1];
+
+      this.mapOfResolutionAndArrayOfBars[serverResolution] = [lastBarFromServer];
+
+    }
+
+  }
+
+  callRealTimeCallbackUpdatingCurrentBar(resolutionInMS) {
+
+    const callTime = new Date();
+
+    console.log(`call at ${callTime.getMinutes()}:${callTime.getSeconds()}:${callTime.getMilliseconds()}`);
+
+    const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolutionInMS];
+
+    if(arrayOfBars.length > 0) {
+
+      let lastBar = arrayOfBars[arrayOfBars.length - 1];
+
+      const now = Date.now();
+
+      const mapOfIdAndRealtimeCallbackObject = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS];
+
+      if(mapOfIdAndRealtimeCallbackObject) {
+
+        const arrayOfIds = Object.keys(mapOfIdAndRealtimeCallbackObject);
+
+        while(lastBar.time + resolutionInMS < now){
+
+          const newBar = createNewBar(resolutionInMS, lastBar);
+
+          arrayOfBars.push(newBar);
+
+          lastBar = newBar;
+
+          arrayOfIds.forEach((id) => {
+
+            const {realTimeCallback} = mapOfIdAndRealtimeCallbackObject[id];
+
+            realTimeCallback(lastBar);
+
+          });
+
+        }
+
+        const delay = (lastBar.time + resolutionInMS) - now;
+
+        console.log(`delay is ${delay} ms`);
+
+        const nextTimeToCall = new Date(now + delay);
+
+        console.log(`next time add new bar is ${nextTimeToCall.getMinutes()}:${nextTimeToCall.getSeconds()}:${nextTimeToCall.getMilliseconds()}`);
+
+        const timeOutId = setTimeout(() => {
+
+          this.callRealTimeCallbackUpdatingCurrentBar(resolutionInMS);
+
+        }, delay);
+
+        arrayOfIds.forEach((id) => {
+
+          const realTimeCallbackObject = mapOfIdAndRealtimeCallbackObject[id];
+
+          realTimeCallbackObject.timeOutId = timeOutId;
+
+        });
+
+      }
+    }
+
+  }
+
+  createOrderMatchEventHandler() {
+
+    return (event) => {
+
+      const {reason, matches, timestamp} = JSON.parse(event.data);
+
+      const time = new Date(timestamp).getTime();
+
+      if(reason.type !== 'CANCELED') {
+
+        const {price} = reason;
+
+        const tradedVolume = getTradedVolume(matches);
+
+        if(tradedVolume > 0) {
+
+          const arrayOfResolution = Object.keys(this.mapOfResolutionAndArrayOfBars);
+
+          arrayOfResolution.forEach((resolution) => {
+
+            resolution = parseInt(resolution, 0);
+
+            const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolution];
+
+            if(arrayOfBars.length === 0) {
+
+              arrayOfBars.push({
+
+                open: price,
+
+                close: price,
+
+                high: price,
+
+                low: price,
+
+                volume: tradedVolume,
+
+                time: calculateClosestStartTimeForResolution(time)
+
+              });
+
+            }
+            else{
+
+              updateArrayOfBars(resolution, arrayOfBars, price, tradedVolume, time);
+
+            }
+
+            const lastbar = arrayOfBars[arrayOfBars.length - 1];
+
+            this.callRealTimeCallbackUpdatingCurrentBar(resolution, lastbar.time);
+
+          });
+
+        }
+
+      }
+
+    };
+
+  }
+
+  removeWebSocketHandler() {
+
+    this.webSocketToServer.offMessage(this.websocketHandlerId);
+
   }
 
 }

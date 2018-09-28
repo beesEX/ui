@@ -8,9 +8,7 @@ import AggregatedOrderBookColumn from './AggregatedOrderBookColumn';
 import Typography from '@material-ui/core/Typography/Typography';
 import Grid from '@material-ui/core/Grid';
 
-const wsURL = 'ws://localhost:8081/market/';
-
-export default class AggregatedOrderBookTable extends React.PureComponent{
+export default class AggregatedOrderBookTable extends React.PureComponent {
   constructor(props) {
     super(props);
     this.priceLevels = 20;
@@ -29,64 +27,67 @@ export default class AggregatedOrderBookTable extends React.PureComponent{
 
   componentDidMount() {
     const {symbol} = this.state;
-    const ws = new WebSocket(`${wsURL}${symbol}`);
-    ws.onmessage = (event) => {
-      const parsedData = JSON.parse(event.data);
-      console.log(parsedData);
-      if(parsedData.type === 'ORDER_BOOK_EVENT') {
-        const {matches, reason: {oldPrice, filledQuantity, type, side, price, quantity, oldQuantity}, filledCompletely} = JSON.parse(event.data); // [Tung]: also destruct 'oldPrice' and 'filledQuantity' fields of reason order
-        let tradedQuantity = 0;
-        // if matches then check/update also the other side
-        if(matches.length) {
-          tradedQuantity = this.processMatches(side, matches);
+
+    if(this.props.webSocketToServer) {
+
+      this.props.webSocketToServer.onMessage((event) => {
+        const parsedData = JSON.parse(event.data);
+        console.log(parsedData);
+        if(parsedData.type === 'ORDER_BOOK_EVENT') {
+          const {matches, reason: {oldPrice, filledQuantity, type, side, price, quantity, oldQuantity}, filledCompletely} = JSON.parse(event.data); // [Tung]: also destruct 'oldPrice' and 'filledQuantity' fields of reason order
+          let tradedQuantity = 0;
+          // if matches then check/update also the other side
+          if(matches.length) {
+            tradedQuantity = this.processMatches(side, matches);
+          }
+          const sideState = this.getSide(side);
+          const index = this.getByPrice(sideState, price);
+
+          switch(type){
+            case 'PLACED':
+              if(typeof index === 'number') {
+                if(filledCompletely) this.changeVolumeByPrice(sideState, index, -quantity, -tradedQuantity);
+                else this.changeVolumeByPrice(sideState, index, quantity, tradedQuantity);
+              }
+              else{
+                if(!filledCompletely) this.addPriceLevel(sideState, price, quantity, tradedQuantity);
+              }
+              break;
+
+            case 'UPDATED':
+
+              let newQuantity = 0, newFilledQuantity = 0;
+
+
+              if(oldPrice !== price) {   // price changed
+                // update the volume of oldPrice
+                const oldPriceIndex = this.getByPrice(sideState, oldPrice);
+                this.changeVolumeByPrice(sideState, oldPriceIndex, -oldQuantity, -filledQuantity);
+
+                // update the volume of newPrice
+                newQuantity += oldQuantity;
+                newFilledQuantity += filledQuantity;
+              }
+
+              if(oldQuantity !== quantity)
+                newQuantity += (quantity - oldQuantity);
+
+              if(typeof index === 'number')
+                this.changeVolumeByPrice(sideState, index, newQuantity, newFilledQuantity + tradedQuantity);
+              else
+                this.addPriceLevel(sideState, price, newQuantity, newFilledQuantity + tradedQuantity);
+
+              break;
+
+            case 'CANCELED':
+              this.changeVolumeByPrice(sideState, index, -quantity, -filledQuantity);
+              break;
+          }
+
+          this.updateSide(side, sideState);
         }
-        const sideState = this.getSide(side);
-        const index = this.getByPrice(sideState, price);
-
-        switch(type){
-          case 'PLACED':
-            if(typeof index === 'number') {
-              if (filledCompletely) this.changeVolumeByPrice(sideState, index, -quantity, -tradedQuantity);
-              else this.changeVolumeByPrice(sideState, index, quantity, tradedQuantity);
-            }
-            else {
-              if (!filledCompletely) this.addPriceLevel(sideState, price, quantity, tradedQuantity);
-            }
-            break;
-
-          case 'UPDATED':
-
-            let newQuantity = 0, newFilledQuantity = 0;
-
-
-            if ( oldPrice !== price ) {   // price changed
-              // update the volume of oldPrice
-              const oldPriceIndex = this.getByPrice(sideState, oldPrice);
-              this.changeVolumeByPrice(sideState, oldPriceIndex, -oldQuantity, -filledQuantity);
-
-              // update the volume of newPrice
-              newQuantity += oldQuantity;
-              newFilledQuantity += filledQuantity;
-            }
-
-            if ( oldQuantity !== quantity )
-              newQuantity += (quantity - oldQuantity);
-
-            if (typeof index === 'number')
-              this.changeVolumeByPrice(sideState, index, newQuantity, newFilledQuantity + tradedQuantity);
-            else
-              this.addPriceLevel(sideState, price, newQuantity, newFilledQuantity + tradedQuantity);
-
-            break;
-
-          case 'CANCELED':
-            this.changeVolumeByPrice(sideState, index, -quantity, -filledQuantity);
-            break;
-        }
-
-        this.updateSide(side, sideState);
-      }
-    };
+      });
+    }
   }
 
   processMatches = (side, matches) => {
@@ -99,18 +100,20 @@ export default class AggregatedOrderBookTable extends React.PureComponent{
       let {price, quantity, tradedQuantity, filledCompletely} = matches[i];
       traded += tradedQuantity;
       const priceStr = price.toString();
-      if ( !savedPriceIndex[priceStr] ) savedPriceIndex[priceStr] = this.getByPrice(counterSideState, price);
-      if (filledCompletely) {
-        // if this order is filled with this match, that means this order has been filled with amount of ( quantity - tradedQuantity ) before
-        // so we decrease the amount of filledQuantity of the price level by ( quantity - tradedQuantity )
+      if(!savedPriceIndex[priceStr]) savedPriceIndex[priceStr] = this.getByPrice(counterSideState, price);
+      if(filledCompletely) {
+        // if this order is filled with this match, that means this order has been filled with amount of ( quantity -
+        // tradedQuantity ) before so we decrease the amount of filledQuantity of the price level by ( quantity -
+        // tradedQuantity )
         tradedQuantity = -(quantity - tradedQuantity);
 
         // also decrease the quantity of price level
         quantity = -quantity;
 
-      } else quantity = 0;
+      }
+      else quantity = 0;
 
-      if (typeof savedPriceIndex[priceStr] === 'number') {
+      if(typeof savedPriceIndex[priceStr] === 'number') {
         this.changeVolumeByPrice(counterSideState, savedPriceIndex[priceStr], quantity, tradedQuantity);
       }
     }
@@ -124,13 +127,14 @@ export default class AggregatedOrderBookTable extends React.PureComponent{
   updateSide = (side, sideState) => {
 
     let newState = sideState.slice();
-    if (side==='SELL') {
+    if(side === 'SELL') {
       newState.splice(this.priceLevels);
       newState.reverse();
       this.setState({
         asks: newState
       });
-    } else {
+    }
+    else{
       newState.reverse().splice(this.priceLevels);
       this.setState({
         bids: newState
@@ -156,13 +160,13 @@ export default class AggregatedOrderBookTable extends React.PureComponent{
   changeVolumeByPrice = (side, index, volumeOffset, filledVolumeOffset) => {
     side[index].quantity += volumeOffset;
     side[index].filledQuantity += filledVolumeOffset;
-    if( side[index].quantity === side[index].filledQuantity || side[index].quantity === 0 ) this.removePriceLevel(side, index); // [Tung]: removing
-                                                                                                   // a price level
-                                                                                                   // should only be
-                                                                                                   // done in the
-                                                                                                   // refactored
-                                                                                                   // function
-                                                                                                   // increaseFilledVolume(...)
+    if(side[index].quantity === side[index].filledQuantity || side[index].quantity === 0) this.removePriceLevel(side, index); // [Tung]: removing
+    // a price level
+    // should only be
+    // done in the
+    // refactored
+    // function
+    // increaseFilledVolume(...)
   };
 
   removePriceLevel = (side, index) => {
@@ -177,12 +181,12 @@ export default class AggregatedOrderBookTable extends React.PureComponent{
       filledQuantity
     };
 
-    if ( !sideState.length || (sideState.length && price > sideState[sideState.length-1].price) ) {
+    if(!sideState.length || (sideState.length && price > sideState[sideState.length - 1].price)) {
       console.log('pushed');
       return sideState.push(newEl);
     }
 
-    const insertIndex = sideState.findIndex( el => el.price > price );
+    const insertIndex = sideState.findIndex(el => el.price > price);
     console.log(insertIndex);
     sideState.splice(insertIndex, 0, newEl);
   };
