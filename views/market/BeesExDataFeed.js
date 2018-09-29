@@ -32,7 +32,7 @@ function convertResolutionToMS(resolution) {
 
   const resolutionNumber = parseInt(resolution.substring(0, resolution.length - 1), 0);
 
-  switch(lastCharacter){
+  switch (lastCharacter) {
 
     case 'S':
 
@@ -63,7 +63,7 @@ function isInInterval(start, length, value) {
 
   const intervalRightThreshold = start + length;
 
-  if(value < intervalRightThreshold) {
+  if (value < intervalRightThreshold) {
 
     return true;
 
@@ -123,11 +123,9 @@ function updateBar(bar, price, quantity) {
 
 function updateArrayOfBars(resolution, arrayOfBars, price, quantity, time) {
 
-  console.log(time);
+  let lastBar = getLastElementFromArray(arrayOfBars);
 
-  let lastBar = arrayOfBars[arrayOfBars.length - 1];
-
-  while(!isInInterval(lastBar.time, resolution, time)){
+  while (!isInInterval(lastBar.time, resolution, time)) {
 
     lastBar = createNewBar(resolution, lastBar);
 
@@ -136,7 +134,6 @@ function updateArrayOfBars(resolution, arrayOfBars, price, quantity, time) {
   }
 
   updateBar(lastBar, price, quantity);
-
 
 }
 
@@ -158,6 +155,40 @@ function calculateClosestStartTimeForResolution(time, resolution) {
 
 }
 
+function getLastElementFromArray(array) {
+
+  return array[array.length - 1];
+
+}
+
+function findFirstBarOnClientNewerThanLastBarFromServer(arrayOfBarsOnClient, arrayOfBarsFromServer) {
+
+  const lastBarFromServer = getLastElementFromArray(arrayOfBarsFromServer);
+
+  let indexOfFoundBar = 0;
+
+  if (lastBarFromServer) {
+
+    for (let i = 0; i < arrayOfBarsOnClient.length; i++) {
+
+      const barOnClient = arrayOfBarsOnClient[i];
+
+      if (barOnClient.time > lastBarFromServer.time) {
+
+        indexOfFoundBar = i;
+
+        break;
+
+      }
+
+    }
+
+  }
+
+  return indexOfFoundBar;
+
+}
+
 /**
  * This class implements the js data feed interface of the trading view chart
  */
@@ -171,7 +202,7 @@ export default class BeesExDataFeed {
 
     this.mapOfResolutionAndArrayOfBars = {};
 
-    if(this.webSocketToServer) {
+    if (this.webSocketToServer) {
 
       SERVER_SUPPORTED_RESOLUTIONS.forEach((resolutionAsString) => {
 
@@ -303,12 +334,12 @@ export default class BeesExDataFeed {
 
     const foundSymbolInfo = SYMBOL_DICTIONARY[normalizeSymbolName];
 
-    if(foundSymbolInfo) {
+    if (foundSymbolInfo) {
 
       onSymbolResolvedCallback(foundSymbolInfo);
 
     }
-    else{
+    else {
 
       onResolveErrorCallback('symbol info not found!');
 
@@ -356,7 +387,7 @@ export default class BeesExDataFeed {
    */
   getBars(symbolInfo, resolution, from, to, onHistoryCallback, onErrorCallback, firstDataRequest) {
 
-    if(firstDataRequest) {
+    if (firstDataRequest) {
 
       to = Date.now();
 
@@ -388,24 +419,24 @@ export default class BeesExDataFeed {
 
         const responseObjectFromServer = JSON.parse(responseTextFromServer);
 
-        if(responseObjectFromServer.error) {
+        if (responseObjectFromServer.error) {
 
           onErrorCallback(responseObjectFromServer.error.message);
 
         }
-        else{
-
-          this.rememberLastDataPoint(resolutionInMS, responseObjectFromServer.data);
+        else {
 
           const noData = responseObjectFromServer.data && responseObjectFromServer.data.length === 0;
 
           onHistoryCallback(responseObjectFromServer.data, {noData});
 
+          this.mergeBarsFromServerAndClient(resolutionInMS, responseObjectFromServer.data);
+
           const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolutionInMS];
 
-          if(arrayOfBars.length > 0) {
+          if (arrayOfBars.length > 0) {
 
-            const lastBar = arrayOfBars[arrayOfBars.length - 1];
+            const lastBar = getLastElementFromArray(arrayOfBars);
 
             this.callRealTimeCallbackUpdatingCurrentBar(resolutionInMS, lastBar.time);
 
@@ -466,7 +497,7 @@ export default class BeesExDataFeed {
 
     let mapOfIdAndRealtimeCallback = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS];
 
-    if(!mapOfIdAndRealtimeCallback) {
+    if (!mapOfIdAndRealtimeCallback) {
 
       mapOfIdAndRealtimeCallback = {};
 
@@ -499,11 +530,15 @@ export default class BeesExDataFeed {
 
       const mapOfIdAndRealtimeCallback = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolution];
 
-      const {timeOutId} = mapOfIdAndRealtimeCallback[subscriberUID];
+      if(mapOfIdAndRealtimeCallback) {
 
-      clearTimeout(timeOutId);
+        const {timeOutId} = mapOfIdAndRealtimeCallback[subscriberUID];
 
-      delete mapOfIdAndRealtimeCallback[subscriberUID];
+        clearTimeout(timeOutId);
+
+        delete mapOfIdAndRealtimeCallback[subscriberUID];
+
+      }
 
     });
 
@@ -705,38 +740,51 @@ export default class BeesExDataFeed {
 
   }
 
-  rememberLastDataPoint(serverResolution, arrayOfBarsFromServer) {
+  mergeBarsFromServerAndClient(resolutionInMS, arrayOfBarsFromServer) {
 
-    const arrayOfBarsOnClient = this.mapOfResolutionAndArrayOfBars[serverResolution];
+    const arrayOfBarsOnClient = this.mapOfResolutionAndArrayOfBars[resolutionInMS];
 
-    if(arrayOfBarsOnClient.length > 0) {
+    if (arrayOfBarsOnClient.length > 0) {
 
       const lastBarOnClient = arrayOfBarsOnClient[arrayOfBarsOnClient.length - 1];
 
-      if(arrayOfBarsFromServer.length > 0) {
+      const lastBarFromServer = arrayOfBarsFromServer[arrayOfBarsFromServer.length - 1];
 
-        const lastBarFromServer = arrayOfBarsFromServer[arrayOfBarsFromServer.length - 1];
+      if (arrayOfBarsFromServer.length > 0) {
 
-        if(lastBarOnClient.time === lastBarFromServer.time) {
+        if (lastBarOnClient.time === lastBarFromServer.time) {
 
           mergeBar(lastBarOnClient, lastBarFromServer);
 
+          this.mapOfResolutionAndArrayOfBars[resolutionInMS] = [lastBarFromServer];
+
+        }
+        else {
+
+          const indexOfFirstBar = findFirstBarOnClientNewerThanLastBarFromServer(arrayOfBarsOnClient, arrayOfBarsFromServer);
+
+          const newArrayOfBarsOnClient = [];
+
+          this.mapOfResolutionAndArrayOfBars[resolutionInMS] = newArrayOfBarsOnClient;
+
+          for (let i = indexOfFirstBar; i < arrayOfBarsOnClient.length; i++) {
+
+            newArrayOfBarsOnClient.push(arrayOfBarsOnClient[i]);
+
+            this.callAllRealTimeCallbacksForResolution(resolutionInMS);
+
+          }
+
         }
 
-        this.mapOfResolutionAndArrayOfBars[serverResolution] = [lastBarFromServer];
-
       }
-      else{
 
-        this.mapOfResolutionAndArrayOfBars[serverResolution] = [lastBarOnClient];
-
-      }
     }
-    else if(arrayOfBarsFromServer.length > 0) {
+    else if (arrayOfBarsFromServer.length > 0) {
 
       const lastBarFromServer = arrayOfBarsFromServer[arrayOfBarsFromServer.length - 1];
 
-      this.mapOfResolutionAndArrayOfBars[serverResolution] = [lastBarFromServer];
+      this.mapOfResolutionAndArrayOfBars[resolutionInMS] = [lastBarFromServer];
 
     }
 
@@ -750,35 +798,31 @@ export default class BeesExDataFeed {
 
     const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolutionInMS];
 
-    if(arrayOfBars.length > 0) {
+    if (arrayOfBars.length > 0) {
 
-      let lastBar = arrayOfBars[arrayOfBars.length - 1];
+      let lastBar = getLastElementFromArray(arrayOfBars);
 
       const now = Date.now();
 
-      const mapOfIdAndRealtimeCallbackObject = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS];
+      const mapOfIdAndRealTimeCallbackObject = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS];
 
-      if(mapOfIdAndRealtimeCallbackObject) {
+      if (mapOfIdAndRealTimeCallbackObject) {
 
-        const arrayOfIds = Object.keys(mapOfIdAndRealtimeCallbackObject);
+        const arrayOfRealTimeCallbackObjectIds = Object.keys(mapOfIdAndRealTimeCallbackObject);
 
-        while(lastBar.time + resolutionInMS < now){
+        while (lastBar.time + resolutionInMS < now) {
 
           const newBar = createNewBar(resolutionInMS, lastBar);
 
           arrayOfBars.push(newBar);
 
+          this.callAllRealTimeCallbacksForResolution(resolutionInMS);
+
           lastBar = newBar;
 
-          arrayOfIds.forEach((id) => {
-
-            const {realTimeCallback} = mapOfIdAndRealtimeCallbackObject[id];
-
-            realTimeCallback(lastBar);
-
-          });
-
         }
+
+        this.callAllRealTimeCallbacksForResolution(resolutionInMS);
 
         const delay = (lastBar.time + resolutionInMS) - now;
 
@@ -794,9 +838,9 @@ export default class BeesExDataFeed {
 
         }, delay);
 
-        arrayOfIds.forEach((id) => {
+        arrayOfRealTimeCallbackObjectIds.forEach((id) => {
 
-          const realTimeCallbackObject = mapOfIdAndRealtimeCallbackObject[id];
+          const realTimeCallbackObject = mapOfIdAndRealTimeCallbackObject[id];
 
           realTimeCallbackObject.timeOutId = timeOutId;
 
@@ -815,13 +859,13 @@ export default class BeesExDataFeed {
 
       const time = new Date(timestamp).getTime();
 
-      if(reason.type !== 'CANCELED') {
+      if (reason.type !== 'CANCELED') {
 
         const {price} = reason;
 
         const tradedVolume = getTradedVolume(matches);
 
-        if(tradedVolume > 0) {
+        if (tradedVolume > 0) {
 
           const arrayOfResolution = Object.keys(this.mapOfResolutionAndArrayOfBars);
 
@@ -831,7 +875,7 @@ export default class BeesExDataFeed {
 
             const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolution];
 
-            if(arrayOfBars.length === 0) {
+            if (arrayOfBars.length === 0) {
 
               arrayOfBars.push({
 
@@ -845,12 +889,12 @@ export default class BeesExDataFeed {
 
                 volume: tradedVolume,
 
-                time: calculateClosestStartTimeForResolution(time)
+                time: calculateClosestStartTimeForResolution(time, resolution)
 
               });
 
             }
-            else{
+            else {
 
               updateArrayOfBars(resolution, arrayOfBars, price, tradedVolume, time);
 
@@ -873,6 +917,30 @@ export default class BeesExDataFeed {
   removeWebSocketHandler() {
 
     this.webSocketToServer.offMessage(this.websocketHandlerId);
+
+  }
+
+  callAllRealTimeCallbacksForResolution(resolutionInMS) {
+
+    const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolutionInMS];
+
+    const lastBar = arrayOfBars[arrayOfBars.length - 1];
+
+    if (lastBar) {
+
+      const mapOfIdAndRealTimeCallbackObject = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS];
+
+      const arrayOfRealTimeCallbackObjectIds = Object.keys(mapOfIdAndRealTimeCallbackObject);
+
+      arrayOfRealTimeCallbackObjectIds.forEach((id) => {
+
+        const {realTimeCallback} = mapOfIdAndRealTimeCallbackObject[id];
+
+        realTimeCallback(lastBar);
+
+      });
+
+    }
 
   }
 
