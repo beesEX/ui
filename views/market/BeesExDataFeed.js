@@ -79,19 +79,13 @@ function isInInterval(start, length, value) {
 
 }
 
-function getTradedVolumeAndTradedPrices(arrayOfMatchedOrders, reasonOrder) {
+function getTradedVolumeAndTradedPrices(arrayOfMatchedOrders) {
 
   let tradedVolume = 0;
 
-  let minPrice = Number.MAX_VALUE;
+  let lowestTradedPrice = Number.MAX_VALUE;
 
-  let maxPrice = 0;
-
-  let lowestTradedPrice;
-
-  let highestTradedPrice;
-
-  const {price} = reasonOrder;
+  let highestTradedPrice = 0;
 
   let closedPrice = getLastElementFromArray(arrayOfMatchedOrders).price;
 
@@ -101,39 +95,19 @@ function getTradedVolumeAndTradedPrices(arrayOfMatchedOrders, reasonOrder) {
 
     tradedVolume += tradedQuantity;
 
-    if(price < minPrice) {
+    if(price < lowestTradedPrice) {
 
-      minPrice = price;
+      lowestTradedPrice = price;
 
     }
-    else if(price > maxPrice) {
+    else if(price > highestTradedPrice) {
 
-      maxPrice = price;
+      highestTradedPrice = price;
 
     }
 
 
   });
-
-  if(reasonOrder.side === 'BUY') {
-
-    lowestTradedPrice = Math.min(price, minPrice);
-
-    highestTradedPrice = Math.min(price, maxPrice);
-
-    closedPrice = Math.min(price, closedPrice);
-
-  }
-  else{
-
-    lowestTradedPrice = Math.max(price, minPrice);
-
-    highestTradedPrice = Math.max(price, maxPrice);
-
-    closedPrice = Math.max(price, closedPrice);
-
-  }
-
 
   return {
 
@@ -920,7 +894,7 @@ export default class BeesExDataFeed {
 
           const {price} = reason;
 
-          const {tradedVolume, lowestTradedPrice, highestTradedPrice, closedPrice} = getTradedVolumeAndTradedPrices(matches, reason);
+          const {tradedVolume, lowestTradedPrice, highestTradedPrice, closedPrice} = getTradedVolumeAndTradedPrices(matches);
 
           if(tradedVolume > 0) {
 
