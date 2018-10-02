@@ -32,7 +32,7 @@ function convertResolutionToMS(resolution) {
 
   const resolutionNumber = parseInt(resolution.substring(0, resolution.length - 1), 0);
 
-  switch (lastCharacter) {
+  switch(lastCharacter) {
 
     case 'S':
 
@@ -59,11 +59,17 @@ function convertResolutionToMS(resolution) {
 
 }
 
+function getLastElementFromArray(array) {
+
+  return array[array.length - 1];
+
+}
+
 function isInInterval(start, length, value) {
 
   const intervalRightThreshold = start + length;
 
-  if (value < intervalRightThreshold) {
+  if(value < intervalRightThreshold) {
 
     return true;
 
@@ -73,19 +79,73 @@ function isInInterval(start, length, value) {
 
 }
 
-function getTradedVolume(arrayOfMatchedOrders) {
+function getTradedVolumeAndTradedPrices(arrayOfMatchedOrders, reasonOrder) {
 
   let tradedVolume = 0;
 
+  let minPrice = Number.MAX_VALUE;
+
+  let maxPrice = 0;
+
+  let lowestTradedPrice;
+
+  let highestTradedPrice;
+
+  const {price} = reasonOrder;
+
+  let closedPrice = getLastElementFromArray(arrayOfMatchedOrders).price;
+
   arrayOfMatchedOrders.forEach((matchedOrder) => {
 
-    const {tradedQuantity} = matchedOrder;
+    const {tradedQuantity, price} = matchedOrder;
 
     tradedVolume += tradedQuantity;
 
+    if(price < minPrice) {
+
+      minPrice = price;
+
+    }
+    else if(price > maxPrice) {
+
+      maxPrice = price;
+
+    }
+
+
   });
 
-  return tradedVolume;
+  if(reasonOrder.side === 'BUY') {
+
+    lowestTradedPrice = Math.min(price, minPrice);
+
+    highestTradedPrice = Math.min(price, maxPrice);
+
+    closedPrice = Math.min(price, closedPrice);
+
+  }
+  else{
+
+    lowestTradedPrice = Math.max(price, minPrice);
+
+    highestTradedPrice = Math.max(price, maxPrice);
+
+    closedPrice = Math.max(price, closedPrice);
+
+  }
+
+
+  return {
+
+    tradedVolume,
+
+    highestTradedPrice,
+
+    lowestTradedPrice,
+
+    closedPrice
+
+  };
 
 }
 
@@ -109,23 +169,23 @@ function createNewBar(resolution, currentBar) {
 
 }
 
-function updateBar(bar, price, quantity) {
+function updateBar(bar, highestTradedPrice, lowestTradedPrice, closedPrice, quantity) {
 
-  bar.close = price;
+  bar.close = closedPrice;
 
-  bar.low = Math.min(bar.low, price);
+  bar.low = Math.min(bar.low, lowestTradedPrice);
 
-  bar.high = Math.max(bar.high, price);
+  bar.high = Math.max(bar.high, highestTradedPrice);
 
   bar.volume += quantity;
 
 }
 
-function updateArrayOfBars(resolution, arrayOfBars, price, quantity, time) {
+function updateArrayOfBars(resolution, arrayOfBars, highestTradedPrice, lowestTradedPrice, closedPrice, quantity, time) {
 
   let lastBar = getLastElementFromArray(arrayOfBars);
 
-  while (!isInInterval(lastBar.time, resolution, time)) {
+  while(!isInInterval(lastBar.time, resolution, time)) {
 
     lastBar = createNewBar(resolution, lastBar);
 
@@ -133,7 +193,7 @@ function updateArrayOfBars(resolution, arrayOfBars, price, quantity, time) {
 
   }
 
-  updateBar(lastBar, price, quantity);
+  updateBar(lastBar, highestTradedPrice, lowestTradedPrice, closedPrice, quantity);
 
 }
 
@@ -155,11 +215,6 @@ function calculateClosestStartTimeForResolution(time, resolution) {
 
 }
 
-function getLastElementFromArray(array) {
-
-  return array[array.length - 1];
-
-}
 
 function findFirstBarOnClientNewerThanLastBarFromServer(arrayOfBarsOnClient, arrayOfBarsFromServer) {
 
@@ -167,13 +222,13 @@ function findFirstBarOnClientNewerThanLastBarFromServer(arrayOfBarsOnClient, arr
 
   let indexOfFoundBar = 0;
 
-  if (lastBarFromServer) {
+  if(lastBarFromServer) {
 
-    for (let i = 0; i < arrayOfBarsOnClient.length; i++) {
+    for(let i = 0; i < arrayOfBarsOnClient.length; i++) {
 
       const barOnClient = arrayOfBarsOnClient[i];
 
-      if (barOnClient.time > lastBarFromServer.time) {
+      if(barOnClient.time > lastBarFromServer.time) {
 
         indexOfFoundBar = i;
 
@@ -202,7 +257,7 @@ export default class BeesExDataFeed {
 
     this.mapOfResolutionAndArrayOfBars = {};
 
-    if (this.webSocketToServer) {
+    if(this.webSocketToServer) {
 
       SERVER_SUPPORTED_RESOLUTIONS.forEach((resolutionAsString) => {
 
@@ -334,12 +389,12 @@ export default class BeesExDataFeed {
 
     const foundSymbolInfo = SYMBOL_DICTIONARY[normalizeSymbolName];
 
-    if (foundSymbolInfo) {
+    if(foundSymbolInfo) {
 
       onSymbolResolvedCallback(foundSymbolInfo);
 
     }
-    else {
+    else{
 
       onResolveErrorCallback('symbol info not found!');
 
@@ -387,7 +442,7 @@ export default class BeesExDataFeed {
    */
   getBars(symbolInfo, resolution, from, to, onHistoryCallback, onErrorCallback, firstDataRequest) {
 
-    if (firstDataRequest) {
+    if(firstDataRequest) {
 
       to = Date.now();
 
@@ -419,12 +474,12 @@ export default class BeesExDataFeed {
 
         const responseObjectFromServer = JSON.parse(responseTextFromServer);
 
-        if (responseObjectFromServer.error) {
+        if(responseObjectFromServer.error) {
 
           onErrorCallback(responseObjectFromServer.error.message);
 
         }
-        else {
+        else{
 
           const noData = responseObjectFromServer.data && responseObjectFromServer.data.length === 0;
 
@@ -434,7 +489,7 @@ export default class BeesExDataFeed {
 
           const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolutionInMS];
 
-          if (arrayOfBars.length > 0) {
+          if(arrayOfBars.length > 0) {
 
             const lastBar = getLastElementFromArray(arrayOfBars);
 
@@ -497,7 +552,7 @@ export default class BeesExDataFeed {
 
     let mapOfIdAndRealtimeCallback = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS];
 
-    if (!mapOfIdAndRealtimeCallback) {
+    if(!mapOfIdAndRealtimeCallback) {
 
       mapOfIdAndRealtimeCallback = {};
 
@@ -744,22 +799,22 @@ export default class BeesExDataFeed {
 
     const arrayOfBarsOnClient = this.mapOfResolutionAndArrayOfBars[resolutionInMS];
 
-    if (arrayOfBarsOnClient.length > 0) {
+    if(arrayOfBarsOnClient.length > 0) {
 
       const lastBarOnClient = arrayOfBarsOnClient[arrayOfBarsOnClient.length - 1];
 
       const lastBarFromServer = arrayOfBarsFromServer[arrayOfBarsFromServer.length - 1];
 
-      if (arrayOfBarsFromServer.length > 0) {
+      if(arrayOfBarsFromServer.length > 0) {
 
-        if (lastBarOnClient.time === lastBarFromServer.time) {
+        if(lastBarOnClient.time === lastBarFromServer.time) {
 
           mergeBar(lastBarOnClient, lastBarFromServer);
 
           this.mapOfResolutionAndArrayOfBars[resolutionInMS] = [lastBarFromServer];
 
         }
-        else {
+        else{
 
           const indexOfFirstBar = findFirstBarOnClientNewerThanLastBarFromServer(arrayOfBarsOnClient, arrayOfBarsFromServer);
 
@@ -767,7 +822,7 @@ export default class BeesExDataFeed {
 
           this.mapOfResolutionAndArrayOfBars[resolutionInMS] = newArrayOfBarsOnClient;
 
-          for (let i = indexOfFirstBar; i < arrayOfBarsOnClient.length; i++) {
+          for(let i = indexOfFirstBar; i < arrayOfBarsOnClient.length; i++) {
 
             newArrayOfBarsOnClient.push(arrayOfBarsOnClient[i]);
 
@@ -780,7 +835,7 @@ export default class BeesExDataFeed {
       }
 
     }
-    else if (arrayOfBarsFromServer.length > 0) {
+    else if(arrayOfBarsFromServer.length > 0) {
 
       const lastBarFromServer = arrayOfBarsFromServer[arrayOfBarsFromServer.length - 1];
 
@@ -798,7 +853,7 @@ export default class BeesExDataFeed {
 
     const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolutionInMS];
 
-    if (arrayOfBars.length > 0) {
+    if(arrayOfBars.length > 0) {
 
       let lastBar = getLastElementFromArray(arrayOfBars);
 
@@ -806,11 +861,11 @@ export default class BeesExDataFeed {
 
       const mapOfIdAndRealTimeCallbackObject = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS];
 
-      if (mapOfIdAndRealTimeCallbackObject) {
+      if(mapOfIdAndRealTimeCallbackObject) {
 
         const arrayOfRealTimeCallbackObjectIds = Object.keys(mapOfIdAndRealTimeCallbackObject);
 
-        while (lastBar.time + resolutionInMS < now) {
+        while(lastBar.time + resolutionInMS < now) {
 
           const newBar = createNewBar(resolutionInMS, lastBar);
 
@@ -859,52 +914,56 @@ export default class BeesExDataFeed {
 
       const time = new Date(timestamp).getTime();
 
-      if (reason.type !== 'CANCELED') {
+      if(reason.type !== 'CANCELED') {
 
-        const {price} = reason;
+        if(matches.length > 0) {
 
-        const tradedVolume = getTradedVolume(matches);
+          const {price} = reason;
 
-        if (tradedVolume > 0) {
+          const {tradedVolume, lowestTradedPrice, highestTradedPrice, closedPrice} = getTradedVolumeAndTradedPrices(matches, reason);
 
-          const arrayOfResolution = Object.keys(this.mapOfResolutionAndArrayOfBars);
+          if(tradedVolume > 0) {
 
-          arrayOfResolution.forEach((resolution) => {
+            const arrayOfResolution = Object.keys(this.mapOfResolutionAndArrayOfBars);
 
-            resolution = parseInt(resolution, 0);
+            arrayOfResolution.forEach((resolution) => {
 
-            const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolution];
+              resolution = parseInt(resolution, 0);
 
-            if (arrayOfBars.length === 0) {
+              const arrayOfBars = this.mapOfResolutionAndArrayOfBars[resolution];
 
-              arrayOfBars.push({
+              if(arrayOfBars.length === 0) {
 
-                open: price,
+                arrayOfBars.push({
 
-                close: price,
+                  open: price,
 
-                high: price,
+                  close: price,
 
-                low: price,
+                  high: highestTradedPrice,
 
-                volume: tradedVolume,
+                  low: lowestTradedPrice,
 
-                time: calculateClosestStartTimeForResolution(time, resolution)
+                  volume: tradedVolume,
 
-              });
+                  time: calculateClosestStartTimeForResolution(time, resolution)
 
-            }
-            else {
+                });
 
-              updateArrayOfBars(resolution, arrayOfBars, price, tradedVolume, time);
+              }
+              else{
 
-            }
+                updateArrayOfBars(resolution, arrayOfBars, highestTradedPrice, lowestTradedPrice, closedPrice, tradedVolume, time);
 
-            const lastbar = arrayOfBars[arrayOfBars.length - 1];
+              }
 
-            this.callRealTimeCallbackUpdatingCurrentBar(resolution, lastbar.time);
+              const lastbar = arrayOfBars[arrayOfBars.length - 1];
 
-          });
+              this.callRealTimeCallbackUpdatingCurrentBar(resolution, lastbar.time);
+
+            });
+
+          }
 
         }
 
@@ -926,7 +985,7 @@ export default class BeesExDataFeed {
 
     const lastBar = arrayOfBars[arrayOfBars.length - 1];
 
-    if (lastBar) {
+    if(lastBar) {
 
       const mapOfIdAndRealTimeCallbackObject = this.mapOfResolutionAndMapOfIdAndRealtimeCallbackObject[resolutionInMS];
 

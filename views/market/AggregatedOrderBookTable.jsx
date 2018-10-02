@@ -8,6 +8,26 @@ import AggregatedOrderBookColumn from './AggregatedOrderBookColumn';
 import Typography from '@material-ui/core/Typography/Typography';
 import Grid from '@material-ui/core/Grid';
 
+const ZERO = 1e-12;
+
+const normalizeToZERO = function(value){
+
+  if(value < 0 && value >= -ZERO){
+
+    return 0;
+
+  }
+
+  if(value > 0 && value <= ZERO){
+
+    return value;
+
+  }
+
+  return value;
+
+}
+
 export default class AggregatedOrderBookTable extends React.PureComponent {
   constructor(props) {
     super(props);
@@ -158,8 +178,8 @@ export default class AggregatedOrderBookTable extends React.PureComponent {
    * your function named 'changeVolumeByPrice', but it receives an index as input, a little confusing :-)
    */
   changeVolumeByPrice = (side, index, volumeOffset, filledVolumeOffset) => {
-    side[index].quantity += volumeOffset;
-    side[index].filledQuantity += filledVolumeOffset;
+    side[index].quantity = normalizeToZERO(side[index].quantity + volumeOffset);
+    side[index].filledQuantity = normalizeToZERO(side[index].filledQuantity + filledVolumeOffset);
     if(side[index].quantity === side[index].filledQuantity || side[index].quantity === 0) this.removePriceLevel(side, index); // [Tung]: removing
     // a price level
     // should only be
