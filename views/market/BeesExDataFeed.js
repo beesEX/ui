@@ -421,12 +421,15 @@ export default class BeesExDataFeed {
       to = Date.now();
 
     }
+    else{
+
+      to *= 1000;
+
+    }
 
     // from, to = unix timestamp in s not ms (wrong documented in chart wiki)
 
     from *= 1000;
-
-    to *= 1000;
 
     const resolutionInMS = convertResolutionToMS(resolution);
 
