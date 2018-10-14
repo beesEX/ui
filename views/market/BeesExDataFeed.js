@@ -168,13 +168,20 @@ function updateBar(bar, highestTradedPrice, lowestTradedPrice, closedPrice, firs
 
   bar.close = closedPrice;
 
-  bar.low = Math.min(bar.low, lowestTradedPrice);
-
-  bar.high = Math.max(bar.high, highestTradedPrice);
-
-  if(bar.volume === 0){
+  if (bar.volume === 0) {
 
     bar.open = firstPrice;
+
+    bar.low = lowestTradedPrice;
+
+    bar.high = highestTradedPrice;
+
+  }
+  else {
+
+    bar.low = Math.min(bar.low, lowestTradedPrice);
+
+    bar.high = Math.max(bar.high, highestTradedPrice);
 
   }
 
