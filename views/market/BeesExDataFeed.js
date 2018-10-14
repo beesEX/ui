@@ -89,6 +89,8 @@ function getTradedVolumeAndTradedPrices(arrayOfMatchedOrders) {
 
   let closedPrice;
 
+  let firstPrice;
+
   if (arrayOfMatchedOrders.length > 0) {
 
     const firstMatchedOrder = arrayOfMatchedOrders[0];
@@ -100,6 +102,8 @@ function getTradedVolumeAndTradedPrices(arrayOfMatchedOrders) {
     closedPrice = getLastElementFromArray(arrayOfMatchedOrders).price;
 
     tradedVolume += firstMatchedOrder.tradedQuantity;
+
+    firstPrice = firstMatchedOrder.price;
 
     for (let i = 1; i < arrayOfMatchedOrders.length; i++) {
 
@@ -132,7 +136,9 @@ function getTradedVolumeAndTradedPrices(arrayOfMatchedOrders) {
 
     lowestTradedPrice,
 
-    closedPrice
+    closedPrice,
+
+    firstPrice
 
   };
 
@@ -158,7 +164,7 @@ function createNewBar(resolution, currentBar) {
 
 }
 
-function updateBar(bar, highestTradedPrice, lowestTradedPrice, closedPrice, quantity) {
+function updateBar(bar, highestTradedPrice, lowestTradedPrice, closedPrice, firstPrice, quantity) {
 
   bar.close = closedPrice;
 
@@ -166,11 +172,17 @@ function updateBar(bar, highestTradedPrice, lowestTradedPrice, closedPrice, quan
 
   bar.high = Math.max(bar.high, highestTradedPrice);
 
+  if(bar.volume === 0){
+
+    bar.open = firstPrice;
+
+  }
+
   bar.volume += quantity;
 
 }
 
-function updateArrayOfBars(resolution, arrayOfBars, highestTradedPrice, lowestTradedPrice, closedPrice, quantity, time) {
+function updateArrayOfBars(resolution, arrayOfBars, highestTradedPrice, lowestTradedPrice, closedPrice, firstPrice, quantity, time) {
 
   let lastBar = getLastElementFromArray(arrayOfBars);
 
@@ -182,7 +194,7 @@ function updateArrayOfBars(resolution, arrayOfBars, highestTradedPrice, lowestTr
 
   }
 
-  updateBar(lastBar, highestTradedPrice, lowestTradedPrice, closedPrice, quantity);
+  updateBar(lastBar, highestTradedPrice, lowestTradedPrice, closedPrice, firstPrice, quantity);
 
 }
 
@@ -912,7 +924,7 @@ export default class BeesExDataFeed {
 
           const {price} = reason;
 
-          const {tradedVolume, lowestTradedPrice, highestTradedPrice, closedPrice} = getTradedVolumeAndTradedPrices(matches);
+          const {tradedVolume, lowestTradedPrice, highestTradedPrice, closedPrice, firstPrice} = getTradedVolumeAndTradedPrices(matches);
 
           if (tradedVolume > 0) {
 
@@ -945,7 +957,7 @@ export default class BeesExDataFeed {
               }
               else {
 
-                updateArrayOfBars(resolution, arrayOfBars, highestTradedPrice, lowestTradedPrice, closedPrice, tradedVolume, time);
+                updateArrayOfBars(resolution, arrayOfBars, highestTradedPrice, lowestTradedPrice, closedPrice, firstPrice, tradedVolume, time);
 
               }
 
