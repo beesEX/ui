@@ -929,8 +929,6 @@ export default class BeesExDataFeed {
 
         if (matches.length > 0) {
 
-          const {price} = reason;
-
           const {tradedVolume, lowestTradedPrice, highestTradedPrice, closedPrice, firstPrice} = getTradedVolumeAndTradedPrices(matches);
 
           if (tradedVolume > 0) {
@@ -947,9 +945,9 @@ export default class BeesExDataFeed {
 
                 arrayOfBars.push({
 
-                  open: price,
+                  open: firstPrice,
 
-                  close: price,
+                  close: closedPrice,
 
                   high: highestTradedPrice,
 
