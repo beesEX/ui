@@ -121,7 +121,7 @@ export class TradingViewChart extends React.PureComponent {
 
     return (
 
-      <Paper>
+      <Paper style={{height:'100%'}}>
 
         <div
           id={this.props.containerId}

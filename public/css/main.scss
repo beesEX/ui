@@ -25,7 +25,7 @@ html {
 }
 
 body {
-  padding-top: 80px;
+  padding-top: 60px;
   margin-bottom: 75px;
   font-size: 14px;
 }
@@ -60,7 +60,6 @@ textarea {
 
 .navbar{
   padding: 0px;
-  margin-bottom: 20px;
   display: block;
 }
 
@@ -207,15 +206,14 @@ textarea {
 
 .tradingViewChartContainer{
 
-  height: 788px;
-
+  height: 100%;
   margin-bottom: ($grid-gutter-width) !important;
 
 }
 
 .aggregated-order-book-row {
   position: relative;
-  margin: 2px 0;
+
   & > div {
     overflow: hidden;
   }
@@ -238,7 +236,7 @@ textarea {
     background-color: rgba(#f62bfa, 0.5);
   }
 
-  line-height: 2;
+  line-height: 1.5;
 
 }
 
@@ -251,5 +249,5 @@ textarea {
     background-color: rgba(#47fa75, 0.5);
   }
 
-  line-height: 2;
+  line-height: 1.5;
 }

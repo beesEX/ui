@@ -59,201 +59,144 @@ class MarketContent extends React.Component{
 
         <Grid
           container
-          spacing={16}
-          direction={'column'}
+          direction={'row'}
         >
 
-          <Grid item>
-            <Typography
-              variant='headline'
-              gutterBottom
-            >
+          <Grid
+            item
+            lg={8}
+          >
 
-              {this.props.currency}/{this.props.baseCurrency}
+            <TradingViewChart debug={true} interval={'1'} webSocketToServer={webSocketToServer}/>
 
-            </Typography>
-            <hr/>
           </Grid>
 
-          <Grid item>
-
-            <Grid
-              container
-              spacing={16}
-            >
-
-              <Grid
-                item
-                lg={9}
-              >
-
-                <Grid
-                  container
-                  direction={'column'}
-                >
-
-                  <Grid item>
-
-                    <Typography
-                      variant='headline'
-                      gutterBottom
-                    >
-                      Trade
-                    </Typography>
-
-                    <hr/>
-
-                  </Grid>
-
-                  <Grid
-                    item
-                  >
-                    <TradingViewChart debug={true} interval={'1'} webSocketToServer={webSocketToServer}/>
-
-                  </Grid>
-
-                  <Grid
-                    item
-                  >
-
-
-                    <Paper>
-
-                      <Tabs
-                        value={value}
-                        indicatorColor='primary'
-                        textColor='primary'
-                        onChange={this.changeTab}
-                      >
-
-                        <Tab
-                          value={'limit'}
-                          label={'Limit'}
-                        />
-
-                        <Tab
-                          value={'market'}
-                          label={'Market'}
-                        />
-
-                      </Tabs>
-
-                      {
-
-                        value === 'limit' &&
-
-                        <Grid
-                          container
-                          className={'market-form-container'}
-                        >
-
-                          <Grid
-                            item
-                            xs={6}
-                            className={'market-form-buy-part'}
-                          >
-
-                            <LimitTradeForm
-                              balance={this.props.baseCurrencyAvailableBalance}
-                              baseCurrency={window.market.baseCurrency}
-                              currency={window.market.currency}
-                              action={'BUY'}
-                              orderHistoryTable={this.tableRef}
-                            />
-
-                          </Grid>
-
-                          <Grid
-                            item
-                            xs={6}
-                            className={'market-form-sell-part'}
-                          >
-
-                            <LimitTradeForm
-                              balance={this.props.currencyAvailableBalance}
-                              baseCurrency={window.market.baseCurrency}
-                              currency={window.market.currency}
-                              action={'SELL'}
-                              orderHistoryTable={this.tableRef}
-                            />
-
-                          </Grid>
-
-                        </Grid>
-
-                      }
-
-                      {
-                        value === 'market' &&
-                        <div>
-                          Market Form
-                        </div>
-
-                      }
-
-                    </Paper>
-                  </Grid>
-
-                </Grid>
-
-              </Grid>
-
-              <Grid
-                item
-                lg={3}
-              >
-
+          <Grid
+            item
+            lg={4}
+          >
+            <Grid container direction={'row'}>
+              <Grid item lg={7}>
                 <AggregatedOrderBookTable webSocketToServer={webSocketToServer}/>
-
               </Grid>
-
+              <Grid item lg={5}>
+                Trade History
+              </Grid>
             </Grid>
 
           </Grid>
 
         </Grid>
 
-        <React.Fragment>
+        <Grid container direction={'row'}>
+          <Grid item lg={8}>
+            <React.Fragment>
 
-          <Typography
-            className={'orderHistoryHeadline'}
-            variant='headline'
-            gutterBottom
-          >
+              <OrderHistoryTable
+                ref={this.tableRef}
+                orders={window.market.orders}
+                count={window.market.count}
+                rowPerPage={window.market.limit}
+                alertDialog={this.alertDialogRef}
+                updateOrderDialog={this.updateOrderDialog}
+                baseCurrency={window.market.baseCurrency}
+                currency={window.market.currency}
+              />
 
-            {'Order History'}
+              <AlertDialog
+                ref={this.alertDialogRef}
+                title={'Delete'}
+                message={'Do you want to delete this order'}
+              />
 
-          </Typography>
+              <UpdateOrderDialog
+                fullWidth={true}
+                currencyAvailableBalance={this.props.currencyAvailableBalance}
+                baseCurrencyAvailableBalance={this.props.baseCurrencyAvailableBalance}
+                ref={this.updateOrderDialog}
+                title={'Update Order'}
+                orderHistoryTable={this.tableRef}
+              />
+            </React.Fragment>
+          </Grid>
+          <Grid item lg={4}>
+            <Paper>
 
-          <hr/>
+              <Tabs
+                value={value}
+                indicatorColor='primary'
+                textColor='primary'
+                onChange={this.changeTab}
+              >
 
-          <OrderHistoryTable
-            ref={this.tableRef}
-            orders={window.market.orders}
-            count={window.market.count}
-            rowPerPage={window.market.limit}
-            alertDialog={this.alertDialogRef}
-            updateOrderDialog={this.updateOrderDialog}
-            baseCurrency={window.market.baseCurrency}
-            currency={window.market.currency}
-          />
+                <Tab
+                  value={'limit'}
+                  label={'Limit'}
+                />
 
-          <AlertDialog
-            ref={this.alertDialogRef}
-            title={'Delete'}
-            message={'Do you want to delete this order'}
-          />
+                <Tab
+                  value={'market'}
+                  label={'Market'}
+                />
 
-          <UpdateOrderDialog
-            fullWidth={true}
-            currencyAvailableBalance={this.props.currencyAvailableBalance}
-            baseCurrencyAvailableBalance={this.props.baseCurrencyAvailableBalance}
-            ref={this.updateOrderDialog}
-            title={'Update Order'}
-            orderHistoryTable={this.tableRef}
-          />
-        </React.Fragment>
+              </Tabs>
 
+              {
+
+                value === 'limit' &&
+
+                <Grid
+                  container
+                  className={'market-form-container'}
+                >
+
+                  <Grid
+                    item
+                    xs={6}
+                    className={'market-form-buy-part'}
+                  >
+
+                    <LimitTradeForm
+                      balance={this.props.baseCurrencyAvailableBalance}
+                      baseCurrency={window.market.baseCurrency}
+                      currency={window.market.currency}
+                      action={'BUY'}
+                      orderHistoryTable={this.tableRef}
+                    />
+
+                  </Grid>
+
+                  <Grid
+                    item
+                    xs={6}
+                    className={'market-form-sell-part'}
+                  >
+
+                    <LimitTradeForm
+                      balance={this.props.currencyAvailableBalance}
+                      baseCurrency={window.market.baseCurrency}
+                      currency={window.market.currency}
+                      action={'SELL'}
+                      orderHistoryTable={this.tableRef}
+                    />
+
+                  </Grid>
+
+                </Grid>
+
+              }
+
+              {
+                value === 'market' &&
+                <div>
+                  Market Form
+                </div>
+
+              }
+
+            </Paper>
+          </Grid>
+        </Grid>
       </React.Fragment>
 
     );

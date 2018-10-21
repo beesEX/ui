@@ -1,21 +1,45 @@
-extends ../layout
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='theme-color' content='#4DA5F4')
+    meta(name='csrf-token', content=_csrf)
+    title beesEX | #{title}
+    link(rel='shortcut icon', href='/favicon.png')
+    link(rel='stylesheet', href='/css/main.css')
+    link(rel="stylesheet" type='text/css' href='https://fonts.googleapis.com/css?family=Roboto:300,400,500&amp;subset=cyrillic,cyrillic-ext,greek,greek-ext,latin-ext,vietnamese')
+    link(rel='stylesheet' href='https://fonts.googleapis.com/icon?family=Material+Icons')
+    script(src='/js/lib/react.development.js')
+    script(src='/js/lib/react-dom.development.js')
 
-block content
-  div#market-content
-  - if (currency && baseCurrency)
-    script
-      != 'window.market = {};\n'
-      != `window.market.currency = '${currency}';\n`
-      != `window.market.baseCurrency = '${baseCurrency}';\n`
-      if (orders instanceof Array)
-        - var ordersString = JSON.stringify(orders)
-        != `window.market.orders = ${ordersString};\n`
-        != `window.market.count = ${count || 0};\n`
-        != `window.market.limit = ${limit || 0};\n`
-      if(aggregatedOrderBookState)
-        - var aggregatedOrderBookStateString = JSON.stringify(aggregatedOrderBookState)
-        != `window.market.aggregatedOrderBookState = ${aggregatedOrderBookStateString};\n`
-        != 'console.log(window.market.aggregatedOrderBookState);\n'
-      != `window.market.currencyAvailableBalance = ${currencyAvailableBalance || 0};\n`
-      != `window.market.baseCurrencyAvailableBalance = ${baseCurrencyAvailableBalance || 0};\n`
-  script(src='/js/market/market.js')
+  body
+    include ../partials/header
+
+    script(src='/js/lib/jquery.min.js')
+    script(src='/js/main.js')
+
+    include ../partials/flash
+    div#market-content
+      - if (currency && baseCurrency)
+        script
+          != 'window.market = {};\n'
+          != `window.market.currency = '${currency}';\n`
+          != `window.market.baseCurrency = '${baseCurrency}';\n`
+          if (orders instanceof Array)
+            - var ordersString = JSON.stringify(orders)
+            != `window.market.orders = ${ordersString};\n`
+            != `window.market.count = ${count || 0};\n`
+            != `window.market.limit = ${limit || 0};\n`
+          if(aggregatedOrderBookState)
+            - var aggregatedOrderBookStateString = JSON.stringify(aggregatedOrderBookState)
+            != `window.market.aggregatedOrderBookState = ${aggregatedOrderBookStateString};\n`
+            != 'console.log(window.market.aggregatedOrderBookState);\n'
+          != `window.market.currencyAvailableBalance = ${currencyAvailableBalance || 0};\n`
+          != `window.market.baseCurrencyAvailableBalance = ${baseCurrencyAvailableBalance || 0};\n`
+        script(src='/js/market/market.js')
+
+    include ../partials/footer
+
+    script(src='/js/lib/bootstrap.min.js')

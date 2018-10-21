@@ -31,7 +31,7 @@ const normalizeToZERO = function(value){
 export default class AggregatedOrderBookTable extends React.PureComponent {
   constructor(props) {
     super(props);
-    this.priceLevels = 20;
+    this.priceLevels = 14;
     this.clientlAsks = window.market.aggregatedOrderBookState.asks.slice();
     this.clientlBids = window.market.aggregatedOrderBookState.bids.slice();
     let asks = this.clientlAsks.slice();
@@ -220,15 +220,6 @@ export default class AggregatedOrderBookTable extends React.PureComponent {
         className={'aggregated-order-table-wrapper'}
         direction={'column'}
       >
-        <Grid item>
-          <Typography
-            variant='headline'
-            gutterBottom
-          >
-            Order Book
-          </Typography>
-          <hr/>
-        </Grid>
         <Grid item>
           <AggregatedOrderBookColumn
             rows={asks}
