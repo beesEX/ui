@@ -20,7 +20,7 @@ const normalizeToZERO = function(value){
 
   if(value > 0 && value <= ZERO){
 
-    return value;
+    return 0;
 
   }
 
