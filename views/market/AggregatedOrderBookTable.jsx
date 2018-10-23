@@ -180,13 +180,8 @@ export default class AggregatedOrderBookTable extends React.PureComponent {
   changeVolumeByPrice = (side, index, volumeOffset, filledVolumeOffset) => {
     side[index].quantity = normalizeToZERO(side[index].quantity + volumeOffset);
     side[index].filledQuantity = normalizeToZERO(side[index].filledQuantity + filledVolumeOffset);
-    if(side[index].quantity === side[index].filledQuantity || side[index].quantity === 0) this.removePriceLevel(side, index); // [Tung]: removing
-    // a price level
-    // should only be
-    // done in the
-    // refactored
-    // function
-    // increaseFilledVolume(...)
+    const approxDiff = normalizeToZERO(side[index].quantity === side[index].filledQuantity);
+    if(approxDiff === 0 || side[index].quantity === 0) this.removePriceLevel(side, index);
   };
 
   removePriceLevel = (side, index) => {
