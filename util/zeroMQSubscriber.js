@@ -4,6 +4,7 @@
  */
 
 const zeroMQ = require('zeromq');
+const requestNamespace = require('../config/requestNamespace');
 
 const {logger} = global;
 
@@ -17,15 +18,17 @@ function subscribe(topic, callback) {
 
   logger.info(`subscribe to topic ${topic}`);
 
-  socket.on('message', (topic, binaryMessage) => {
+  const handleMessage = (topic, binaryMessage) => {
 
     const message = `${binaryMessage}`;
+    requestNamespace.set('requestId', JSON.parse(message).requestId);
 
     logger.debug(`message of topic ${topic} from zeroMQ received: ${message}`);
 
     callback(message);
 
-  });
+  };
+  socket.on('message', requestNamespace.bind(handleMessage));
 
   return socket;
 }

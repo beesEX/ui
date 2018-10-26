@@ -69,6 +69,15 @@ async function getAvailableBalance(req, currency) {
 
 }
 
+async function getLastTrades(req) {
+  const options = {
+    url: process.env.BACKEND_MARKET_TRADES.replace(':currency', req.params.currency).replace(':baseCurrency', req.params.baseCurrency),
+    req
+  };
+
+  return requestToBackEnd.get(options);
+}
+
 exports.index = (req, res) => {
 
   logger.debug(`Market index page with symbol ${req.params.symbol} gets accessed`);
@@ -100,10 +109,13 @@ exports.index = (req, res) => {
 
   const basecurrencyAvailableBalancePromise = getAvailableBalance(req, req.params.baseCurrency);
 
+  const lastTradesPromise = getLastTrades(req);
+
   Promise.all([ordersPromise,
     aggregatedOrderBookPromise,
     currencyAvailableBalancePromise,
-    basecurrencyAvailableBalancePromise])
+    basecurrencyAvailableBalancePromise,
+    lastTradesPromise])
     .then((arrayOfResponses) => {
 
       let errorOccurred = false;
@@ -137,6 +149,8 @@ exports.index = (req, res) => {
 
         const dataFrombaseCurrencyAvailableBalancePromise = arrayOfResponses[3];
 
+        const lastTrades = arrayOfResponses[4];
+
         const data = dataFromOrdersPromise;
 
         data.limit = limit;
@@ -152,6 +166,8 @@ exports.index = (req, res) => {
         data.currencyAvailableBalance = dataFromCurrencyAvailableBalancePromise;
 
         data.baseCurrencyAvailableBalance = dataFrombaseCurrencyAvailableBalancePromise;
+
+        data.lastTrades = lastTrades;
 
         res.render('market', data);
 

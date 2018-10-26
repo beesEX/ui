@@ -5,7 +5,6 @@
 
 import React from 'react';
 import AggregatedOrderBookColumn from './AggregatedOrderBookColumn';
-import Typography from '@material-ui/core/Typography/Typography';
 import Grid from '@material-ui/core/Grid';
 
 const ZERO = 1e-12;

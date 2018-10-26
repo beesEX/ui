@@ -203,16 +203,4 @@ app.listen(app.get('port'), () => {
   logger.log('  Press CTRL-C to stop\n');
 });
 
-/**
- * Test zeroMQ subscriber
- */
-
-const subscribe = require('./util/zeroMQSubscriber');
-
-subscribe('world', (message) => {
-
-  logger.debug(`BOOM: ${message}`);
-
-});
-
 module.exports = app;

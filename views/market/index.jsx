@@ -9,7 +9,6 @@ import * as ReactDOM from 'react-dom';
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import LimitTradeForm from './LimitTradeForm';
 import OrderHistoryTable from './OrderHistoryTable';
@@ -18,6 +17,7 @@ import UpdateOrderDialog from './UpdateOrderDialog';
 import AggregatedOrderBookTable from './AggregatedOrderBookTable';
 import {TradingViewChart} from './TradingViewChart';
 import WebSocketToServer from '../util/WebSocketToServer';
+import TradeHistoryList from "./TradeHistoryList";
 
 const webSocketToServer = new WebSocketToServer(`ws://localhost:8081/market/${window.market.currency}_${window.market.baseCurrency}`);
 
@@ -56,21 +56,19 @@ class MarketContent extends React.Component{
     return (
 
       <React.Fragment>
-
+        {/* Chart + Orderbook + Trade History List */}
         <Grid
           container
           direction={'row'}
         >
-
+          {/* Chart */}
           <Grid
             item
             lg={8}
           >
-
             <TradingViewChart debug={true} interval={'1'} webSocketToServer={webSocketToServer}/>
-
           </Grid>
-
+          {/* Orderbook + Trade History List */}
           <Grid
             item
             lg={4}
@@ -80,14 +78,14 @@ class MarketContent extends React.Component{
                 <AggregatedOrderBookTable webSocketToServer={webSocketToServer}/>
               </Grid>
               <Grid item lg={5}>
-                Trade History
+                <TradeHistoryList/>
               </Grid>
             </Grid>
 
           </Grid>
 
         </Grid>
-
+        {/* Order History + Order Placing Forms */}
         <Grid container direction={'row'}>
           <Grid item lg={8}>
             <React.Fragment>
