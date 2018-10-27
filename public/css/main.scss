@@ -251,3 +251,14 @@ textarea {
 
   line-height: 1.5;
 }
+
+.trade-history-list {
+  list-style: none;
+  padding: 0;
+}
+.trade-history-list-price-item-green {
+  color: #47fa75;
+}
+.trade-history-list-price-item-red {
+  color: #f62bfa;
+}

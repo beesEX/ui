@@ -149,7 +149,7 @@ exports.index = (req, res) => {
 
         const dataFrombaseCurrencyAvailableBalancePromise = arrayOfResponses[3];
 
-        const lastTrades = arrayOfResponses[4];
+        const lastTrades = arrayOfResponses[4].data;
 
         const data = dataFromOrdersPromise;
 

@@ -38,9 +38,10 @@ html
             != 'console.log(window.market.aggregatedOrderBookState);\n'
           != `window.market.currencyAvailableBalance = ${currencyAvailableBalance || 0};\n`
           != `window.market.baseCurrencyAvailableBalance = ${baseCurrencyAvailableBalance || 0};\n`
-          if (lastTrades)
+          if (lastTrades instanceof Array)
             - var lastTradesString = JSON.stringify(lastTrades)
             != `window.market.lastTrades = ${lastTradesString}\n`
+            != 'console.log(window.market.lastTrades);\n'
         script(src='/js/market/market.js')
 
     include ../partials/footer

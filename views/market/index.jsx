@@ -60,15 +60,16 @@ class MarketContent extends React.Component{
         <Grid
           container
           direction={'row'}
+          style={{height:'660px'}}
         >
-          {/* Chart */}
+          {/* LEFT: Chart */}
           <Grid
             item
             lg={8}
           >
             <TradingViewChart debug={true} interval={'1'} webSocketToServer={webSocketToServer}/>
           </Grid>
-          {/* Orderbook + Trade History List */}
+          {/* RIGHT: Orderbook + Trade History List */}
           <Grid
             item
             lg={4}
@@ -78,7 +79,7 @@ class MarketContent extends React.Component{
                 <AggregatedOrderBookTable webSocketToServer={webSocketToServer}/>
               </Grid>
               <Grid item lg={5}>
-                <TradeHistoryList/>
+                <TradeHistoryList trades={window.market.lastTrades} currency={window.market.currency} baseCurrency={window.market.baseCurrency}/>
               </Grid>
             </Grid>
 
@@ -87,6 +88,7 @@ class MarketContent extends React.Component{
         </Grid>
         {/* Order History + Order Placing Forms */}
         <Grid container direction={'row'}>
+          {/* Order History */}
           <Grid item lg={8}>
             <React.Fragment>
 
@@ -117,6 +119,7 @@ class MarketContent extends React.Component{
               />
             </React.Fragment>
           </Grid>
+          {/* Order Placing Forms */}
           <Grid item lg={4}>
             <Paper>
 
