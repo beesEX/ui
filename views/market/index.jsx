@@ -79,7 +79,11 @@ class MarketContent extends React.Component{
                 <AggregatedOrderBookTable webSocketToServer={webSocketToServer}/>
               </Grid>
               <Grid item lg={5}>
-                <TradeHistoryList trades={window.market.lastTrades} currency={window.market.currency} baseCurrency={window.market.baseCurrency}/>
+                <TradeHistoryList
+                  trades={window.market.lastTrades}
+                  currency={window.market.currency}
+                  baseCurrency={window.market.baseCurrency}
+                  webSocketToServer={webSocketToServer}/>
               </Grid>
             </Grid>
 
