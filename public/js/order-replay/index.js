@@ -1,129 +1,111 @@
-let websocket;
-let selectedSide;
-let orderList;
+const orderList = document.getElementById('orderList');
 let csrfToken;
-let server;
+let id;
+const resetResultList = document.getElementById('resetResult');
 
-const GDAX = 'GDAX';
-const GEMINI = 'GEMINI';
+function postAjax(url, data, callback) {
+  const xmlhttp = new XMLHttpRequest();
+  xmlhttp.open('POST', url, true);
+  xmlhttp.setRequestHeader('Content-Type', 'application/json');
+  xmlhttp.setRequestHeader('x-csrf-token', csrfToken);
+  xmlhttp.onreadystatechange = function() {
+    if(xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      console.log(xmlhttp.responseText);
+      callback(xmlhttp.responseText);
+    }
+  };
 
-function toogleConnection() {
-  const btn = document.getElementById('controlBtn');
-  if(btn.innerHTML === 'connect') {
-    connectWS();
-    btn.innerHTML = 'disconnect';
+  if(data) {
+
+    xmlhttp.send(JSON.stringify(data));
+
   }
   else{
-    closeWS();
-    btn.innerHTML = 'connect';
+
+    xmlhttp.send();
+
   }
+
 }
 
-function connectWS() {
-  const sideSelectEle = document.getElementById('side');
-  selectedSide = sideSelectEle.options[sideSelectEle.selectedIndex].value;
+function stop() {
 
+  const data = {
+
+    action: 'stop',
+
+    id
+
+  };
+
+  postAjax(' /order-replay', data, (responseText) => {
+
+    const li = document.createElement('li');
+
+    li.appendChild(document.createTextNode('order replay has been stopped'));
+
+    orderList.insertBefore(li, orderList.firstChild);
+
+  });
+
+}
+
+function start() {
   const apiSelect = document.getElementById('api');
   const api = apiSelect.options[apiSelect.selectedIndex].value;
 
-  orderList = document.getElementById('orderList');
+  const sideSelectEle = document.getElementById('side');
+  const side = sideSelectEle.options[sideSelectEle.selectedIndex].value;
 
-  websocket = new WebSocket(api);
+  const data = {
 
+    source: api,
 
-  switch(api){
+    action: 'start',
 
-    case 'wss://ws-feed.gdax.com':
+    side
 
-      server = GDAX;
-
-      websocket.onopen = function(event) {
-
-        const subscribeMessage = {
-
-          type: 'subscribe',
-
-          product_ids: ['BTC-USD'],
-
-          channels: ['full']
-        };
-
-        websocket.send(JSON.stringify(subscribeMessage));
-      };
-
-      break;
-
-    default:
-
-      server = GEMINI;
-  }
-
-  websocket.onmessage = function(event) {
-    const msg = JSON.parse(event.data);
-    // console.log(JSON.stringify(msg, null, 2));
-    processWSEvent(msg);
   };
-}
 
+  postAjax(' /order-replay', data, (responseText) => {
 
-function processWSEvent(msg) {
+    const response = JSON.parse(responseText);
 
-  switch(server){
+    let text;
 
-    case GDAX:
+    if(response.error) {
 
-      if(msg.type === 'received'){
+      text = 'can not start the order replay process. An error has been occurred';
 
-        const event = {};
+    }
+    else{
 
-        event.side = msg.side === 'sell' ? 'ask' : 'bid';
+      id = response.data.id;
 
-        event.price = msg.price;
+      text = response.data.message;
 
-        event.delta = msg.size;
+    }
 
-        processOrderPlacedEvent(event);
-
-      }
-
-      break;
-
-    default: //GEMINI
-      if(msg.type === 'update') {
-        for(let i = 0; i < msg.events.length; i++) {
-          const event = msg.events[i];
-          if(event.type === 'change' & event.reason === 'place') {
-            processOrderPlacedEvent(event);
-          }
-        }
-      }
-  }
-
-}
-
-function processOrderPlacedEvent(orderEvent) {
-  if(orderEvent.side === selectedSide) {
     const li = document.createElement('li');
-    li.appendChild(document.createTextNode(orderEvent.side + ' ' + orderEvent.price + ' ' + orderEvent.delta));
+
+    li.appendChild(document.createTextNode(text));
+
     orderList.insertBefore(li, orderList.firstChild);
 
-    const xmlhttp = new XMLHttpRequest();
-    xmlhttp.open('POST', '/order/place');
-    xmlhttp.setRequestHeader('Content-Type', 'application/json');
-    xmlhttp.setRequestHeader('x-csrf-token', csrfToken);
-    xmlhttp.send(JSON.stringify({
-      type: 'LIMIT',
-      side: selectedSide === 'ask' ? 'SELL' : 'BUY',
-      currency: 'BTC',
-      baseCurrency: 'USDT',
-      limitPrice: orderEvent.price,
-      quantity: orderEvent.delta
-    }));
-  }
+  });
+
 }
 
-function closeWS() {
-  websocket.close();
+function toogleConnection() {
+  const btn = document.getElementById('controlBtn');
+  if(btn.innerHTML === 'start') {
+    start();
+    btn.innerHTML = 'stop';
+  }
+  else{
+    stop();
+    btn.innerHTML = 'start';
+  }
 }
 
 function loadFinanceStatus() {
@@ -139,9 +121,9 @@ function loadFinanceStatus() {
     $('#txList').empty();
 
     const txLEList = [];
-    txLEList.push('<tr><th>Nr.</th><th style="padding-right: 20px">Type</th><th>Amount</th><th>CreatedAt</th></tr>');
+    txLEList.push(`<tr><th>Nr.</th><th style='padding-right: 20px'>Type</th><th>Amount${''}</th><th>CreatedAt</th></tr>`);
     $.each(financeStatus.txList, (index, tx) => {
-      txLEList.push(`<tr><td>${index}</td><td style="padding-right: 20px">${tx.type}</td><td>${tx.amount}</td><td>${tx.createdAt}</td></tr>`);
+      txLEList.push(`<tr><td>${index}</td><td style='padding-right: 20px'>${tx.type}</td><td>${tx.amount}</td><td>${tx.createdAt}</td></tr>`);
     });
     $('<table/>', {
       html: txLEList.join('')
@@ -152,22 +134,37 @@ function loadFinanceStatus() {
 function depositFund() {
   const currency = $('select#currency option:checked').val();
   const amount = $('#amount').val();
-
-  const xmlhttp = new XMLHttpRequest();
-  xmlhttp.open('POST', `/finance/deposit/${currency}`, true);
-  xmlhttp.setRequestHeader('Content-Type', 'application/json');
-  xmlhttp.setRequestHeader('x-csrf-token', csrfToken);
-  xmlhttp.onreadystatechange = function() {
-    if(xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-      console.log(xmlhttp.responseText);
-      loadFinanceStatus();
-    }
-  };
-  xmlhttp.send(JSON.stringify({amount}));
+  postAjax(`/finance/deposit/${currency}`, {amount}, loadFinanceStatus);
 }
 
 $(document).ready(() => {
   csrfToken = $('#csrf').val();
-
   loadFinanceStatus();
 });
+
+
+function reset() {
+
+  postAjax('/order-replay/reset', null, (responseText) => {
+
+    let text = 'DONE';
+
+    if(responseText && responseText !== 'OK') {
+
+      const response = JSON.parse(responseText);
+
+      if(response.error) {
+
+        text = response.error.msg || response.error.message;
+
+      }
+    }
+
+    const li = document.createElement('li');
+
+    li.appendChild(document.createTextNode(text));
+
+    resetResultList.insertBefore(li, resetResultList.firstChild);
+
+  });
+}

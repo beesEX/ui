@@ -11,25 +11,37 @@ const backendBasedUrl = process.env.BACKEND_URL || 'http://localhost:3001';
  * @param options
  */
 function prepair(options) {
-  if (!(options.req instanceof http.IncomingMessage)) {
+  if(options.req && !(options.req instanceof http.IncomingMessage)) {
     throw new Error(`invalid request object: ${options.req}. 'options.req' must be a expressJS request object`);
   }
 
-  if (!options.headers) {
+  if(!options.headers) {
 
     options.headers = {};
 
   }
-  // add jwt as Cookie-header of api call request
-  if (options.req.session.jwtToken) {
 
-    options.headers.Cookie = `auth=${options.req.session.jwtToken}`;
+  if(options.req) {
+
+    // add jwt as Cookie-header of api call request
+    if(options.req.session.jwtToken) {
+
+      options.headers.Cookie = `auth=${options.req.session.jwtToken}`;
+
+    }
+
+
+    // remove expressJS req from options before sending
+    options.headers['X-Request-Id'] = requestNamespace.get('requestId');
+
+    delete options.req;
 
   }
+  else if(options.jwtToken) {
 
-  if (options.req) {
+    options.headers.Cookie = `auth=${options.jwtToken}`;
 
-    options.headers['X-Request-Id'] = requestNamespace.get('requestId');
+    delete options.jwtToken;
 
   }
 
@@ -42,8 +54,6 @@ function prepair(options) {
    */
   options.json = true;
 
-  // remove expressJS req from options before sending
-  if (options.req) delete options.req;
 }
 
 function promisifyRequest(options) {
@@ -51,14 +61,14 @@ function promisifyRequest(options) {
   return new Promise((resolve, reject) => {
     request(options, (error, response, body) => {
 
-      if (error) {
+      if(error) {
 
         logger.debug(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} has failed with reason= ${JSON.stringify(error)}`);
 
         reject(error);
 
       }
-      else {
+      else{
 
         logger.debug(`callBackend.js: backend API call ${options.method ? options.method : 'GET'} ${options.baseUrl}${options.uri ? options.uri : options.url} was successful, result=${JSON.stringify(body)}`);
 
