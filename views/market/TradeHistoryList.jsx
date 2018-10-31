@@ -25,7 +25,7 @@ export default class TradeHistoryList extends React.PureComponent {
           })
         );
 
-        const newTradeList = newTrades.concat(this.state.trades);
+        const newTradeList = newTrades.concat(this.state.trades).slice(0, 50);
         this.setState({trades: newTradeList});
       }
     });
