@@ -9,15 +9,15 @@ import Grid from '@material-ui/core/Grid';
 
 const ZERO = 1e-12;
 
-const normalizeToZERO = function(value){
+const normalizeToZERO = function(value) {
 
-  if(value < 0 && value >= -ZERO){
+  if(value < 0 && value >= -ZERO) {
 
     return 0;
 
   }
 
-  if(value > 0 && value <= ZERO){
+  if(value > 0 && value <= ZERO) {
 
     return 0;
 
@@ -25,7 +25,7 @@ const normalizeToZERO = function(value){
 
   return value;
 
-}
+};
 
 export default class AggregatedOrderBookTable extends React.PureComponent {
   constructor(props) {
@@ -51,9 +51,8 @@ export default class AggregatedOrderBookTable extends React.PureComponent {
 
       this.props.webSocketToServer.onMessage((event) => {
         const parsedData = JSON.parse(event.data);
-        console.log(parsedData);
         if(parsedData.type === 'ORDER_BOOK_EVENT') {
-          const {matches, reason: {oldPrice, filledQuantity, type, side, price, quantity, oldQuantity}, filledCompletely} = JSON.parse(event.data); // [Tung]: also destruct 'oldPrice' and 'filledQuantity' fields of reason order
+          const {matches, reason: {oldPrice, filledQuantity, type, side, price, quantity, oldQuantity}, filledCompletely} = parsedData; // [Tung]: also destruct 'oldPrice' and 'filledQuantity' fields of reason order
           let tradedQuantity = 0;
           // if matches then check/update also the other side
           if(matches.length) {
@@ -62,7 +61,7 @@ export default class AggregatedOrderBookTable extends React.PureComponent {
           const sideState = this.getSide(side);
           const index = this.getByPrice(sideState, price);
 
-          switch(type){
+          switch(type) {
             case 'PLACED':
               if(typeof index === 'number') {
                 if(filledCompletely) this.changeVolumeByPrice(sideState, index, -quantity, -tradedQuantity);
@@ -159,7 +158,6 @@ export default class AggregatedOrderBookTable extends React.PureComponent {
         bids: newState
       });
     }
-    console.log(sideState);
   };
   getByPrice = (side, searchPrice) => {
     for(let i = 0; i < side.length; i++) {
@@ -209,30 +207,30 @@ export default class AggregatedOrderBookTable extends React.PureComponent {
     let {asks, bids, symbol} = this.state;
     const symbols = symbol.split('_');
     return (
-      <Grid
-        container
-        className={'aggregated-order-table-wrapper'}
-        direction={'column'}
-      >
-        <Grid item>
-          <AggregatedOrderBookColumn
-            rows={asks}
-            symbols={symbols}
-            type={'asks'}
-            priceLevels={this.priceLevels}
-            className={'aggregated-order-book-row'}
+        <Grid
+            container
+            className={'aggregated-order-table-wrapper'}
+            direction={'column'}
+        >
+          <Grid item>
+            <AggregatedOrderBookColumn
+                rows={asks}
+                symbols={symbols}
+                type={'asks'}
+                priceLevels={this.priceLevels}
+                className={'aggregated-order-book-row'}
 
-          />
-          <AggregatedOrderBookColumn
-            rows={bids}
-            symbols={symbols}
-            type={'bids'}
-            priceLevels={this.priceLevels}
-            className={'aggregated-order-book-row'}
-          />
+            />
+            <AggregatedOrderBookColumn
+                rows={bids}
+                symbols={symbols}
+                type={'bids'}
+                priceLevels={this.priceLevels}
+                className={'aggregated-order-book-row'}
+            />
+          </Grid>
+
         </Grid>
-
-      </Grid>
     );
   }
 }
