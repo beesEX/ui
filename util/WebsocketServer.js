@@ -19,6 +19,7 @@ function WebSocketServer(port) {
 
     server,
 
+
     perMessageDeflate: {
 
       zlibDeflateOptions: { // See zlib defaults.
@@ -46,10 +47,10 @@ function WebSocketServer(port) {
       serverNoContextTakeover: true,
 
       // Defaults to negotiated value.
-      clientMaxWindowBits: 10,
+      // clientMaxWindowBits: 10,
 
       // Defaults to negotiated value.
-      serverMaxWindowBits: 10,
+      // serverMaxWindowBits: 10,
 
       // Below options specified as default values.
 
