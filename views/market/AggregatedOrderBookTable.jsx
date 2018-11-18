@@ -194,12 +194,10 @@ export default class AggregatedOrderBookTable extends React.PureComponent {
     };
 
     if(!sideState.length || (sideState.length && price > sideState[sideState.length - 1].price)) {
-      console.log('pushed');
       return sideState.push(newEl);
     }
 
     const insertIndex = sideState.findIndex(el => el.price > price);
-    console.log(insertIndex);
     sideState.splice(insertIndex, 0, newEl);
   };
 
