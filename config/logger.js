@@ -1,6 +1,46 @@
-const {createConsoleLogger} = require('@paralect/common-logger');
+const winston = require('winston');
 
-const logger = createConsoleLogger({isDev: process.env.NODE_ENV === 'development'});
+const createConsoleLogger = ({isDev = false, isProd = false, isTest = false}) => {
+  const transports = [];
+  if (isProd) {
+    transports.push(new winston.transports.Console({
+      colorize: false,
+      humanReadableUnhandledException: true,
+      json: true,
+      level: 'debug'
+    }));
+  }
+
+  if (isDev) {
+    transports.push(new winston.transports.Console({
+      colorize: true,
+      humanReadableUnhandledException: true,
+      json: false,
+      level: 'debug'
+    }));
+  }
+
+  if (isTest) {
+    transports.push(new winston.transports.Console({
+      colorize: true,
+      humanReadableUnhandledException: true,
+      json: false,
+      level: 'debug'
+    }));
+  }
+
+  const logger = new winston.Logger({
+    exitOnError: false,
+    transports
+  });
+
+  logger.debug('[logger] Configured');
+
+  return logger;
+};
+
+
+const logger = createConsoleLogger({isDev: process.env.NODE_ENV === 'development', isProd: process.env.NODE_ENV === 'production', isTest: process.env.NODE_ENV === 'test'});
 
 const requestNamespace = require('./requestNamespace');
 

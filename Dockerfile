@@ -1,14 +1,14 @@
-FROM node:8-slim
+FROM node:10.15.0
 
 WORKDIR /starter
-ENV NODE_ENV development
 
 COPY package.json /starter/package.json
 
-RUN npm install --production
+RUN npm i --quiet
 
 COPY .env.example /starter/.env.example
 COPY . /starter
+RUN npm run webpack
 
 CMD ["npm","start"]
 
