@@ -19,7 +19,7 @@ import {TradingViewChart} from './TradingViewChart';
 import WebSocketToServer from '../util/WebSocketToServer';
 import TradeHistoryList from "./TradeHistoryList";
 
-const webSocketToServer = new WebSocketToServer(`ws://localhost:8081/market/${window.market.currency}_${window.market.baseCurrency}`);
+const webSocketToServer = new WebSocketToServer(`ws://${window.location.hostname}:8081/market/${window.market.currency}_${window.market.baseCurrency}`);
 
 webSocketToServer.open();
 
